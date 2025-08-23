@@ -77,7 +77,7 @@ E-COMMERCE/
 
    ```bash
    PORT=5000
-   DATABASE_URL=postgresql://username:password@localhost:5432/ecommerce_db
+   DB_URL=postgresql://username:password@localhost:5432/ecommerce_db
    ```
 
 4. **Run the SQL script inside SQL/E-commerce.sql to set up your database schema.**
