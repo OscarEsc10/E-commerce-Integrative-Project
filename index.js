@@ -80,6 +80,4 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(` Server running on http://localhost:${PORT}`);
   console.log(` Login page: http://localhost:${PORT}/login`);
-  console.log(` Register page: http://localhost:${PORT}/register`);
-  console.log(` Dashboard: http://localhost:${PORT}/dashboard`);
 });
