@@ -1,113 +1,52 @@
 import { User } from "../Models/User.js";
 
-export class UsersController {
-  /**
-   * Obtener todos los usuarios (solo admin)
-   */
-  static async getAll(req, res) {
+export const UserController = {
+  getAllUsers: async (req, res) => {
     try {
       const users = await User.findAll();
-      res.json({ success: true, data: users });
+      res.json({ success: true, users });
     } catch (error) {
-      console.error("❌ Error en getAll:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: error.message });
     }
-  }
+  },
 
-  /**
-   * Obtener usuario por ID
-   */
-  static async getById(req, res) {
+  getUserById: async (req, res) => {
     try {
-      const { id } = req.params;
-
-      // Si no es admin, solo puede ver su propio perfil
-      if (req.user.role_id !== 1 && req.user.user_id !== parseInt(id)) {
-        return res.status(403).json({ success: false, message: "Forbidden" });
-      }
-
-      const user = await User.findById(id);
-      if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
-      }
-
-      res.json({ success: true, data: user });
+      const user = await User.findById(req.params.id);
+      if (!user) return res.status(404).json({ success: false, message: "User not found" });
+      res.json({ success: true, user });
     } catch (error) {
-      console.error("❌ Error en getById:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: error.message });
     }
-  }
+  },
 
-  /**
-   * Crear usuario (registro público)
-   */
-  static async create(req, res) {
+  createUser: async (req, res) => {
     try {
-      const { name, email, password, phone, role_id } = req.body;
-
-      const result = await User.create({
-        name,
-        email,
-        password,
-        phone,
-        role_id: role_id || 3 // CUSTOMER por defecto
-      });
-
-      if (!result.success) {
-        return res.status(400).json({ success: false, message: result.message });
-      }
-
-      res.status(201).json({ success: true, data: result.user });
+      const result = await User.create(req.body);
+      if (!result.success) return res.status(400).json(result);
+      res.status(201).json(result);
     } catch (error) {
-      console.error("❌ Error en create:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: error.message });
     }
-  }
+  },
 
-  /**
-   * Actualizar usuario
-   */
-  static async update(req, res) {
+  updateUser: async (req, res) => {
     try {
-      const { id } = req.params;
-
-      // Solo admin o el propio usuario puede actualizar
-      if (req.user.role_id !== 1 && req.user.user_id !== parseInt(id)) {
-        return res.status(403).json({ success: false, message: "Forbidden" });
-      }
-
-      const result = await User.update(id, req.body);
-      if (!result.success) {
-        return res.status(400).json({ success: false, message: result.message });
-      }
-
-      res.json({ success: true, data: result.user });
+      const result = await User.update(req.params.id, req.body);
+      if (!result.success) return res.status(400).json(result);
+      res.json(result);
     } catch (error) {
-      console.error("❌ Error en update:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: error.message });
     }
-  }
+  },
 
-  /**
-   * Eliminar usuario
-   */
-  static async delete(req, res) {
+  deleteUser: async (req, res) => {
     try {
-      const { id } = req.params;
-
-      if (req.user.role_id !== 1) {
-        return res.status(403).json({ success: false, message: "Forbidden" });
-      }
-
-      const result = await User.delete(id);
-      if (!result.success) {
-        return res.status(404).json({ success: false, message: result.message });
-      }
-
-      res.json({ success: true, message: "User deleted successfully" });
+      const result = await User.delete(req.params.id);
+      if (!result.success) return res.status(404).json(result);
+      res.json(result);
     } catch (error) {
-      console.error("❌ Error en delete:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
-}
+};

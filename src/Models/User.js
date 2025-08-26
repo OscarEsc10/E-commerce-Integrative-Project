@@ -126,17 +126,25 @@ export class User {
     SELECT u.user_id, u.name, u.email, u.phone, r.name as role, u.created_at
     FROM users u
     JOIN roles r ON u.role_id = r.role_id
-    ORDER BY u.user.id ASC
+    ORDER BY u.user_id ASC
     `;
     const result = await pool.query(query);
     return result.rows;
   }
 
   static async delete(userId) {
-    const result = await pool.query("DELETE FROM users WHERE user_id = $1, [userId]");
-    if(!result.rowCount) {
-      return { success: false, message: "User not found"};
+      try {
+        const result = await pool.query(
+          "DELETE FROM users WHERE user_id = $1",[userId]);
+
+      if (!result.rowCount) {
+      return { success: false, message: "User not found" };
+      }
+
+      return { success: true };
+      } catch (error) {
+      return { success: false, message: error.message };
     }
-    return { success: true };
   }
+
 }
