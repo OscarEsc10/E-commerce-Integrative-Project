@@ -4,12 +4,12 @@ import { body } from 'express-validator';
 
 // User registration validation
 export const validateRegistration = [
-  body('fullName')
+  body('name')
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage('Full name must be between 2 and 100 characters')
+    .withMessage('name must be between 2 and 100 characters')
     .matches(/^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ\s]+$/)
-    .withMessage('Full name can only contain letters and spaces'),
+    .withMessage('name can only contain letters and spaces'),
 
   body('email')
     .trim()
@@ -52,13 +52,13 @@ export const validateLogin = [
 
 // Profile update validation
 export const validateProfileUpdate = [
-  body('fullName')
+  body('name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage('Full name must be between 2 and 100 characters')
+    .withMessage('name must be between 2 and 100 characters')
     .matches(/^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ\s]+$/)
-    .withMessage('Full name can only contain letters and spaces'),
+    .withMessage('name can only contain letters and spaces'),
 
   body('phone')
     .optional()

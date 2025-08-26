@@ -1,83 +1,65 @@
-// index.js
-// This is the main entry point of the application
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
-// Importing configurations
+// Import config
 import { PORT } from "./Config/config.js";
-import "./Config/ConnectionToBd.js"; // Initialize database connection
+import "./Config/ConnectionToBd.js"; 
 
-// Importing routes
+// Import routers
 import authRoutes from "./src/Routes/authRoutes.js";
+import userRoutes from "./src/Routes/userRoutes.js";
+import EbookRoutes from "./src/Routes/EbookRoutes.js"
+import categoryRoutes from "./src/Routes/categoryRoutes.js"
+// import productRoutes from "./src/Routes/products.routes.js";
+// import orderRoutes from "./src/Routes/orders.routes.js";
 
-// Get current directory for ES modules
+// ES module dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initializing the Express application
+// Init app
 const app = express();
 
 // Middlewares
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'your-domain.com' : 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json({ limit: '10mb' }));
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from Views directory
-app.use(express.static(path.join(__dirname, 'src', 'Views')));
-
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/ebooks", EbookRoutes);
+app.use("/api/categories", categoryRoutes);
+// app.use("/api/orders", orderRoutes);
 
-// Serve HTML files
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'Login.html'));
-});
+// Static Views (solo si necesitas HTML desde backend)
+app.use(express.static(path.join(__dirname, "src", "Views")));
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "Login.html"))
+);
 
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'Login.html'));
-});
-
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'register.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'dashboard.html'));
-});
-
-// Test API route
+// Healthcheck
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "E-commerce API is running ",
-    timestamp: new Date().toISOString()
+    message: "E-commerce API is running",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
+// Error handlers
+app.use("*", (req, res) =>
+  res.status(404).json({ success: false, message: "Route not found" })
+);
 
-// Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error'
-  });
+  console.error("Global error:", error);
+  res.status(500).json({ success: false, message: "Internal server error" });
 });
 
-// Starting the server
+// Start server
 app.listen(PORT, () => {
-  console.log(` Server running on http://localhost:${PORT}`);
-  console.log(` Login page: http://localhost:${PORT}/login`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
