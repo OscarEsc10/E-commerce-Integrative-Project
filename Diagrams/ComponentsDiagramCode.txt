@@ -1,0 +1,50 @@
+@startuml
+title Diagrama de Componentes - E-commerce E-books
+
+package "Frontend (Cliente Web/App)" {
+  [Registro/Login]
+  [Vista de E-books (Usuarios)]
+  [Vista de E-books (Admins)]
+  [Carrito de Compras]
+  [Asistente AI]
+}
+
+package "Backend (Servidor / API)" {
+  [Auth Service]
+  [User Service]
+  [E-Books Service]
+  [Cart Service]
+  [AI Assistant Service]
+}
+
+package "Base de Datos" {
+  [Users <<database>>]
+  [E-Books <<database>>]
+  [Cart <<database>>]
+  [Orders <<database>>]
+}
+
+package "Integraciones Externas" {
+  [Pasarela de Pagos (Stripe/PayPal)]
+  [API de IA (OpenAI)]
+}
+
+' Relaciones Frontend -> Backend
+[Registro/Login] --> [Auth Service]
+[Vista de E-books (Usuarios)] --> [E-Books Service]
+[Vista de E-books (Admins)] --> [E-Books Service]
+[Carrito de Compras] --> [Cart Service]
+[Asistente AI] --> [AI Assistant Service]
+
+' Relaciones Backend -> DB
+[Auth Service] --> [Users]
+[User Service] --> [Users]
+[E-Books Service] --> [E-Books]
+[Cart Service] --> [Cart]
+[Cart Service] --> [Orders]
+
+' Relaciones Backend -> Integraciones externas
+[Cart Service] --> [Pasarela de Pagos (Stripe/PayPal)]
+[AI Assistant Service] --> [API de IA (OpenAI)]
+
+@enduml
