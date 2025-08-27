@@ -40,6 +40,14 @@ app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "src", "Views", "Login.html"))
 );
 
+// Dashboard routes
+app.get("/ebooks-dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
+);
+app.get("/dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
+);
+
 // Healthcheck
 app.get("/api/health", (req, res) => {
   res.json({

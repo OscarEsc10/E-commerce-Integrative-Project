@@ -107,4 +107,4 @@ Example .env.examples provided for contributors
 
 ### 📧 Contact
 
-Developed by **Oscar Escorcia**, **Orlando Tapias**, **Hernan Vazquez** and **Ehider Vilanueva**
+Developed by **Oscar Escorcia**, **Hernan Vazquez** and **Ehider Vilanueva**
