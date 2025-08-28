@@ -76,8 +76,10 @@ E-COMMERCE/
 3. Configure environment variables in .env (example provided in .env.examples):
 
    ```bash
-   PORT=5000
-   DB_URL=postgresql://username:password@localhost:5432/ecommerce_db
+   PORT=3000
+   DB_URL=postgresql://username:password@localhost:5432/db_name
+   JWT_SECRET=your_super_secret_jwt_key_here_change_this_in_production
+   JWT_EXPIRES_IN=24h
    ```
 
 4. **Run the SQL script inside SQL/E-commerce.sql to set up your database schema.**
@@ -107,4 +109,4 @@ Example .env.examples provided for contributors
 
 ### 📧 Contact
 
-Developed by **Oscar Escorcia**, **Orlando Tapias**, **Hernan Vazquez** and **Ehider Vilanueva**
+Developed by **Oscar Escorcia**, **Hernan Vazquez** and **Ehider Vilanueva**
