@@ -1,3 +1,4 @@
+import { authManager } from "./auth.js";
 /**
  * API utilities for making HTTP requests to the e-commerce backend
  * Handles all CRUD operations for ebooks, categories, and authentication
@@ -243,7 +244,7 @@ class ApiClient {
 }
 
 // Create global API client instance
-const apiClient = new ApiClient();
+export const apiClient = new ApiClient();
 
 // Export for use in other modules
-window.apiClient = apiClient;
+// window.apiClient = apiClient;

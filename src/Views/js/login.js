@@ -1,3 +1,6 @@
+import { authManager } from "./auth.js";
+import { apiClient } from "./api.js";
+
 /**
  * Login page functionality
  * Handles user authentication and redirects to dashboard
