@@ -247,4 +247,8 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 // Export for use in other modules
+<<<<<<< Updated upstream
 window.apiClient = apiClient;
+=======
+// window.apiClient = apiClient;
+>>>>>>> Stashed changes

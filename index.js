@@ -12,6 +12,7 @@ import authRoutes from "./src/Routes/authRoutes.js";
 import userRoutes from "./src/Routes/userRoutes.js";
 import EbookRoutes from "./src/Routes/EbookRoutes.js"
 import categoryRoutes from "./src/Routes/categoryRoutes.js"
+import CartRoutes from "./src/Routes/CartRoutes.js"
 // import productRoutes from "./src/Routes/products.routes.js";
 // import orderRoutes from "./src/Routes/orders.routes.js";
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ebooks", EbookRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", CartRoutes);
 // app.use("/api/orders", orderRoutes);
 
 // Static Views (solo si necesitas HTML desde backend)

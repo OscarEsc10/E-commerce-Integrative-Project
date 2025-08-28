@@ -1,5 +1,11 @@
+<<<<<<< Updated upstream
 import { apiClient } from "./api.js";
 import { authManager } from "./auth.js";
+=======
+import { authManager } from "./auth.js";
+import { apiClient } from "./api.js";
+
+>>>>>>> Stashed changes
 /**
  * Login page functionality
  * Handles user authentication and redirects to dashboard

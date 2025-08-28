@@ -64,6 +64,7 @@ function getRoleFromUser(user) {
 function setupUIForRole(user) {
   const role = getRoleFromUser(user);
 
+<<<<<<< Updated upstream
   // All pages have these buttons in HTML hidden by default.
   // Un-hide only the ones allowed for this role.
   const show = id => {
@@ -76,33 +77,58 @@ function setupUIForRole(user) {
   };
 
   // First ensure everything is hidden by default (safe)
+=======
+  const show = id => { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); };
+  const hide = id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); };
+
+  // Hide all first
+>>>>>>> Stashed changes
   [
     'btn-manage-users','btn-manage-sellers','btn-reports','btn-manage-ebooks',
     'btn-manage-orders','btn-sales-summary','btn-view-catalog','btn-become-seller',
     'btn-cart','btn-view-profile'
   ].forEach(id => hide(id));
 
+<<<<<<< Updated upstream
   // Common: profile always visible
+=======
+  // Profile always
+>>>>>>> Stashed changes
   show('btn-view-profile');
 
   if (role === 'admin') {
     show('btn-manage-users');
     show('btn-manage-sellers');
+<<<<<<< Updated upstream
     show('btn-manage-ebooks'); // admin can manage books
     show('btn-manage-orders'); // admin manage orders
     show('btn-reports');       // admin reports
     // cart not shown for admin
+=======
+    show('btn-manage-ebooks');
+    show('btn-manage-orders');
+    show('btn-reports');
+>>>>>>> Stashed changes
   }
 
   if (role === 'seller') {
     show('btn-manage-ebooks');
     show('btn-manage-orders');
+<<<<<<< Updated upstream
     show('btn-sales-summary'); // placeholder
     show('btn-cart');          // seller can view cart (per tu petición)
   }
 
   if (role === 'customer') {
     show('btn-view-catalog');  // catalog (customer view)
+=======
+    show('btn-sales-summary');
+    show('btn-cart');
+  }
+
+  if (role === 'customer') {
+    show('btn-view-catalog');
+>>>>>>> Stashed changes
     show('btn-become-seller');
     show('btn-cart');
   }
@@ -112,12 +138,16 @@ function setupUIForRole(user) {
    Event listeners
    ------------------------ */
 function attachEventListeners(user) {
+<<<<<<< Updated upstream
   // Helper to safely attach
+=======
+>>>>>>> Stashed changes
   const on = (id, fn) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', fn);
   };
 
+<<<<<<< Updated upstream
   // Customer: view catalog -> ebooks section
   on('btn-view-catalog', async () => {
     loadSection('ebooks-section');
@@ -128,6 +158,17 @@ function attachEventListeners(user) {
   on('btn-manage-ebooks', async () => {
     loadSection('ebooks-section');
     await initEbooksDashboard();
+=======
+
+  // Customer: view catalog
+  on('btn-view-catalog', () => {
+    window.location.href = 'ebooks-dashboard.html';
+  });
+
+  // Manage ebooks (admin & seller)
+  on('btn-manage-ebooks', () => {
+    window.location.href = 'ebooks-dashboard.html';
+>>>>>>> Stashed changes
   });
 
   // Manage orders (admin & seller)
@@ -136,7 +177,11 @@ function attachEventListeners(user) {
     renderOrders();
   });
 
+<<<<<<< Updated upstream
   // Sales summary (seller) - placeholder
+=======
+  // Sales summary (seller)
+>>>>>>> Stashed changes
   on('btn-sales-summary', () => {
     loadSection('sales-summary-section');
     const el = document.getElementById('sales-summary-content');
@@ -173,11 +218,29 @@ function attachEventListeners(user) {
   // Profile
   on('btn-view-profile', async () => {
     loadSection('profile-section');
+<<<<<<< Updated upstream
     await populateProfile(); // loads and renders profile into #profile-content
   });
 
   // Also attach logout button if present (safer than relying only on inline)
   const logoutEl = document.querySelector('button[onclick="authManager.logout()"]') || document.getElementById('logoutBtn') || document.getElementById('btnLogout');
+=======
+    await populateProfile();
+  });
+
+
+  //back to dashboard button
+  document.getElementById('btn-back-dashboard')?.addEventListener('click', () => {
+  document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
+  document.querySelector('.ebooks-section').classList.remove('hidden'); // o el id de la sección principal
+});
+
+
+  // Logout button
+  const logoutEl = document.querySelector('button[onclick="authManager.logout()"]')
+    || document.getElementById('logoutBtn')
+    || document.getElementById('btnLogout');
+>>>>>>> Stashed changes
   if (logoutEl) {
     logoutEl.addEventListener('click', (e) => {
       e.preventDefault();
@@ -196,6 +259,7 @@ function loadSection(sectionId) {
 }
 
 /* ------------------------
+<<<<<<< Updated upstream
    Ebooks dashboard bootstrap (robust)
    ------------------------ */
 async function initEbooksDashboard() {
@@ -251,18 +315,26 @@ async function initEbooksDashboard() {
 }
 
 /* ------------------------
+=======
+>>>>>>> Stashed changes
    Profile population
    ------------------------ */
 async function populateProfile() {
   const profileContent = document.getElementById('profile-content');
   if (!profileContent) return;
 
+<<<<<<< Updated upstream
   // try to get fresh profile, otherwise use cached
+=======
+>>>>>>> Stashed changes
   let user = authManager.getUserData() || {};
   try {
     if (typeof apiClient.getProfile === 'function') {
       const resp = await apiClient.getProfile();
+<<<<<<< Updated upstream
       // normalize shapes: resp.data.user, resp.user, resp.data, resp
+=======
+>>>>>>> Stashed changes
       user = resp?.data?.user || resp?.user || resp?.data || resp || user;
       if (user) authManager.setUserData(user);
     }
@@ -302,7 +374,11 @@ function roleBadgeClass(user) {
 }
 
 /* ------------------------
+<<<<<<< Updated upstream
    Placeholders for sections not yet implemented
+=======
+   Placeholders
+>>>>>>> Stashed changes
    ------------------------ */
 function renderUsers() {
   const el = document.getElementById('users-section');
@@ -326,7 +402,11 @@ function renderCart() {
 }
 
 /* ------------------------
+<<<<<<< Updated upstream
    Footer / stats (light)
+=======
+   Footer
+>>>>>>> Stashed changes
    ------------------------ */
 async function loadFooterStats() {
   try {
@@ -344,7 +424,14 @@ async function loadFooterStats() {
     const lastUpdatedEl = document.getElementById('last-updated');
     if (lastUpdatedEl) {
       const now = new Date();
+<<<<<<< Updated upstream
       lastUpdatedEl.textContent = `Última actualización: ${now.toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
+=======
+      lastUpdatedEl.textContent = `Última actualización: ${now.toLocaleDateString('es-ES', {
+        year:'numeric', month:'long', day:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      })}`;
+>>>>>>> Stashed changes
     }
   } catch (err) {
     console.error('Error loading footer stats:', err);
