@@ -10,9 +10,9 @@ import "./Config/ConnectionToBd.js";
 // Import routers
 import authRoutes from "./src/Routes/authRoutes.js";
 import userRoutes from "./src/Routes/userRoutes.js";
-import EbookRoutes from "./src/Routes/EbookRoutes.js"
-import categoryRoutes from "./src/Routes/categoryRoutes.js"
-import CartRoutes from "./src/Routes/CartRoutes.js"
+import EbookRoutes from "./src/Routes/EbookRoutes.js";
+import categoryRoutes from "./src/Routes/categoryRoutes.js";
+import CartRoutes from "./src/Routes/CartRoutes.js";
 // import productRoutes from "./src/Routes/products.routes.js";
 // import orderRoutes from "./src/Routes/orders.routes.js";
 
