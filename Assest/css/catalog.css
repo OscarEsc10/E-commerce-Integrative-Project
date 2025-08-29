@@ -1,0 +1,197 @@
+/* Catalog Styles */
+.ebook-card {
+    transition: all 0.3s ease;
+    transform: translateY(0);
+    border: 1px solid #e5e7eb;
+}
+
+.ebook-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+}
+
+.price-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.875rem;
+}
+
+.category-badge {
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Search Section */
+.search-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
+}
+
+/* Loading States */
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Grid Animations */
+.ebooks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    transition: opacity 0.4s ease;
+}
+
+.ebooks-grid.loading {
+    opacity: 0;
+}
+
+.ebooks-grid.loaded {
+    opacity: 1;
+}
+
+/* Results Info */
+.results-info {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* No Results State */
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+.no-results i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Error State */
+.error-state {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: #dc2626;
+}
+
+/* Button Styles */
+.btn {
+    transition: all 0.2s ease;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active {
+    opacity: 0.7;
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+    background-color: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #4b5563;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    opacity: 0.7;
+    transform: translateY(0) scale(0.98);
+}
+
+/* Search Button Effects */
+.search-btn:active {
+    opacity: 0.6;
+    transform: translateY(-1px) scale(0.95);
+}
+
+.clear-btn:active {
+    opacity: 0.6;
+    transform: translateY(-1px) scale(0.95);
+}
+
+/* Ebook Card Click Effect */
+.ebook-card:active {
+    opacity: 0.8;
+    transform: translateY(-4px) scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ebooks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+    
+    .search-container {
+        padding: 1.5rem;
+    }
+    
+    .ebook-card:hover {
+        transform: translateY(-4px);
+    }
+}
+
+@media (max-width: 640px) {
+    .ebooks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-container {
+        padding: 1rem;
+    }
+}

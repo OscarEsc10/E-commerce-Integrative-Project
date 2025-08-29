@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Ebooks</title>
+  <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
+  <script type="module" src="/js/ebooks-dashboard.js" defer></script>
+  <script src="/js/modern-pagination.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/Assest/css/dashboard.css">
+  <link rel="stylesheet" href="/Assest/css/modern-pagination.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#667eea',
+            'secondary': '#764ba2'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div class="flex items-center space-x-4">
+      <div id="userAvatar" class="w-10 h-10 bg-indigo-500 text-white flex items-center justify-center rounded-full font-bold text-lg">U</div>
+      <span id="userName" class="font-semibold"></span>
+      <span id="welcomeMessage" class="text-gray-600 ml-2"></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button id="btn-back-dashboard" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Dashboard</button>
+      <button id="btn-cart" class="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600">Carrito (<span id="cart-count">0</span>)</button>
+      <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <!-- FILTROS -->
+  <div class="p-4 flex flex-col md:flex-row md:items-center md:space-x-4">
+    <input id="filter-input" type="text" placeholder="Buscar ebooks..." class="p-2 border rounded w-full md:w-1/2 mb-2 md:mb-0">
+    <select id="filter-category" class="p-2 border rounded w-full md:w-1/4">
+      <option value="">Todas</option>
+    </select>
+    <button id="add-ebook-btn" class="ml-auto bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 hidden">Agregar Ebook</button>
+  </div>
+
+  <!-- CONTENEDOR DE EBOOKS -->
+  <div id="ebooksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"></div>
+
+  <!-- PAGINACIÓN -->
+  <div id="paginationContainer" class="flex justify-center items-center space-x-2 p-4">
+    <button id="prevPage" class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <div id="pageNumbers" class="flex space-x-1"></div>
+    <button id="nextPage" class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- INFO DE RESULTADOS -->
+  <div id="resultsInfo" class="text-center text-gray-600 pb-4">
+    <span id="resultsCount"></span>
+  </div>
+
+  <!-- CARRITO -->
+  <div id="cart-section" class="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg p-4 hidden z-50">
+    <h3 class="font-bold text-lg mb-2">Mi Carrito</h3>
+    <div id="cart-content" class="max-h-96 overflow-y-auto mb-2"></div>
+    <div class="border-t pt-2">
+      <span class="font-bold">Total: $<span id="cart-total">0.00</span></span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-800 text-white py-2">
+    <div class="container mx-auto text-center">
+      <p>&copy; 2024 E-commerce Ebooks Dashboard. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

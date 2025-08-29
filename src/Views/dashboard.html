@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - E-commerce</title>
+  <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#667eea',
+            'secondary': '#764ba2'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- NAVBAR -->
+  <nav class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 shadow-lg">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold">E-commerce Dashboard</h1>
+      <div class="flex items-center space-x-4">
+        <button id="btn-cart" class="hidden bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-colors">
+          <i class="fas fa-shopping-cart mr-2"></i> Carrito
+        </button>
+        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center font-bold" id="userAvatar">U</div>
+        <span id="userName" class="font-medium">Usuario</span>
+        <button onclick="authManager.logout()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-colors">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+      <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-4">Bienvenido al Dashboard</h2>
+      <p class="text-gray-600">Gestiona tu cuenta y accede a todas las funcionalidades de la plataforma.</p>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">Acciones Rápidas</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Admin -->
+        <button id="btn-manage-users" class="hidden bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-users mr-2"></i> Gestionar Usuarios
+        </button>
+        <button id="btn-manage-sellers" class="hidden bg-gradient-to-r from-green-500 to-teal-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-user-tie mr-2"></i> Gestionar Sellers
+        </button>
+        <button id="btn-reports" class="hidden bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-chart-bar mr-2"></i> Ver Reportes
+        </button>
+
+        <!-- Admin & Seller -->
+        <button id="btn-manage-ebooks" class="hidden bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-book mr-2"></i> Gestionar Libros
+        </button>
+        <button id="btn-manage-orders" class="hidden bg-gradient-to-r from-green-500 to-teal-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-box mr-2"></i> Gestionar Pedidos
+        </button>
+
+        <!-- Seller -->
+        <button id="btn-sales-summary" class="hidden bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-coins mr-2"></i> Resumen de Ventas
+        </button>
+
+        <!-- Customer -->
+        <button id="btn-view-catalog" class="hidden bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-book-open mr-2"></i> Ver Catálogo
+        </button>
+        <button id="btn-become-seller" class="hidden bg-gradient-to-r from-green-500 to-teal-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-store mr-2"></i> Convertirme en Vendedor
+        </button>
+
+        <!-- Todos -->
+        <button id="btn-view-profile" class="hidden bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium py-4 px-6 rounded-xl">
+          <i class="fas fa-user mr-2"></i> Mi Perfil
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIONES DEL DASHBOARD -->
+    <div id="ebooks-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <h3 class="text-2xl font-bold mb-4">Libros</h3>
+      <div id="ebooksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+
+    <div id="users-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8"></div>
+    <div id="sellers-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8"></div>
+    <div id="orders-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8"></div>
+    <div id="reports-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8"></div>
+    <div id="sales-summary-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <div id="sales-summary-content"></div>
+    </div>
+    <div id="become-seller-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <h3 class="text-xl font-bold mb-2">Solicitud para ser Vendedor</h3>
+      <p class="text-gray-600">Funcionalidad en desarrollo 🚧</p>
+    </div>
+    <div id="cart-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <h3 class="text-xl font-bold mb-2">Carrito</h3>
+      <div id="cart-content" class="text-gray-600">Carrito vacío 🚀</div>
+    </div>
+    <div id="profile-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <div id="profile-content"></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer id="dynamic-footer" class="bg-gray-800 text-white mt-12">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+        <div class="text-gray-300 text-sm">
+          © <span id="current-year"></span> E-commerce Platform. Desarrollado por Oscar Escorcia, Hernan Vazquez y Ehider Vilanueva.
+        </div>
+        <div class="text-gray-300 text-sm mt-2 md:mt-0">
+          <span id="last-updated"></span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

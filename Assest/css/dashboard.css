@@ -1,0 +1,105 @@
+/* Dashboard Styles */
+.loading {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.loaded {
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+/* Cart Styles */
+.cart-slide {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.cart-slide.hidden {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Button Styles */
+.btn-primary {
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:active {
+    opacity: 0.7;
+    transform: translateY(0) scale(0.98);
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+    transition: all 0.2s ease;
+}
+
+.add-to-cart-btn:active {
+    opacity: 0.6;
+    transform: scale(0.95);
+}
+
+/* Ebook Card Click Effect */
+.ebook-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.ebook-card:active {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* Footer Styles */
+footer {
+    background: #1f2937;
+    color: white;
+    padding: 0.5rem 0;
+    border-top: 1px solid #4b5563;
+    min-height: 40px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+/* Add padding to body to prevent content overlap with fixed footer */
+body {
+    padding-bottom: 60px;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4f46e5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+    .ebook-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .ebook-grid {
+        grid-template-columns: 1fr;
+    }
+}
