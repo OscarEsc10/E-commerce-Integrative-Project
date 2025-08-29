@@ -1,0 +1,123 @@
+/* Simple Modern Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    position: relative;
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn:hover {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.pagination-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.2);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.pagination-btn:disabled:hover {
+    border-color: #e5e7eb;
+    background: white;
+    color: #6b7280;
+    transform: none;
+}
+
+.page-number {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-number:hover {
+    background: #f3f4f6;
+    color: #667eea;
+    transform: translateY(-1px);
+    border-color: #d1d5db;
+}
+
+.page-number.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.pagination-dots {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+/* Simple Results Info Style */
+.results-info-modern {
+    text-align: center;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    margin: 1rem 0;
+    color: #64748b;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pagination-container {
+        gap: 0.25rem;
+        padding: 1rem 0;
+    }
+    
+    .pagination-btn,
+    .page-number {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+    
+    .pagination-dots {
+        padding: 0 4px;
+    }
+}

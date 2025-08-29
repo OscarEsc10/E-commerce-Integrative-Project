@@ -50,12 +50,12 @@ class AuthManager {
     logout() {
         localStorage.removeItem(this.tokenKey);
         localStorage.removeItem(this.userKey);
-        window.location.href = '/';
+        window.location.href = '/login';
     }
 
     requireAuth() {
         if (!this.isAuthenticated()) {
-            window.location.href = '/';
+            window.location.href = '/login';
             return false;
         }
         return true;

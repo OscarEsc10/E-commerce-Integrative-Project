@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { authenticateToken, requireRole } from '../Middleware/auth.js';
 import { pool } from '../../Config/ConnectionToBd.js';
+import { EbookController } from '../Controllers/EbookController.js';
 
 const router = Router();
 
@@ -111,5 +112,9 @@ router.delete('/:id', authenticateToken, requireRole(['admin', 'seller']), async
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// Public pagination routes (no authentication required for catalog viewing)
+router.get('/paginated', EbookController.getPaginated);
+router.get('/search', EbookController.search);
 
 export default router;

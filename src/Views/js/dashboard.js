@@ -111,12 +111,12 @@ function attachEventListeners(user) {
 
   // Customer: view catalog
   on('btn-view-catalog', () => {
-    window.location.href = 'ebooks-dashboard.html';
+    window.location.href = '/ebooks';
   });
 
   // Manage ebooks (admin & seller)
   on('btn-manage-ebooks', () => {
-    window.location.href = 'ebooks-dashboard.html';
+    window.location.href = '/ebooks';
   });
 
   // Manage orders (admin & seller)

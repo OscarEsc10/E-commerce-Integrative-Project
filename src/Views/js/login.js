@@ -118,7 +118,7 @@ class LoginManager {
      */
     redirectToDashboard(userRole) {
         // All users go to main dashboard first, then they can navigate to specific sections
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
     }
 
     /**
