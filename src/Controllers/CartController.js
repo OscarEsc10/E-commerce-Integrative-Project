@@ -3,78 +3,59 @@ import { CartItem } from '../Models/CartModel.js';
 export const CartController = {
   getAll: async (req, res) => {
     try {
-      const userId = req.user.user_id;
-      const items = await CartItem.getAllByUser(userId);
+      const user_id = req.user?.user_id;
+      if (!user_id) return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+
+      const items = await CartItem.findByUserId(user_id);
       res.json({ success: true, items });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Error al obtener carrito' });
+      res.status(500).json({ success: false, message: 'Error al obtener carrito', error: error.message });
     }
   },
 
-  add: async (req, res) => {
+  create: async (req, res) => {
     try {
-      const userId = req.user.user_id;
+      const user_id = req.user?.user_id;
       const { ebook_id, quantity } = req.body;
+      if (!user_id) return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+      if (!ebook_id || !quantity) return res.status(400).json({ success: false, message: 'Faltan datos' });
 
-      if (!ebook_id || !quantity) {
-        return res.status(400).json({ success: false, message: 'Faltan parámetros' });
-      }
-
-      const existing = await CartItem.getByUserAndEbook(userId, ebook_id);
-      if (existing) {
-        const newQty = existing.quantity + quantity;
-        const updated = await CartItem.update(existing.cart_item_id, { quantity: newQty });
-        return res.json({ success: true, item: updated });
-      }
-
-      const item = await CartItem.create({ user_id: userId, ebook_id, quantity });
+      const item = await CartItem.create({ user_id, ebook_id, quantity });
       res.status(201).json({ success: true, item });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Error al agregar al carrito' });
+      res.status(500).json({ success: false, message: 'Error al agregar item', error: error.message });
     }
   },
 
   update: async (req, res) => {
     try {
+      const user_id = req.user?.user_id;
       const { id } = req.params;
       const { quantity } = req.body;
+      if (!user_id) return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+      if (!quantity) return res.status(400).json({ success: false, message: 'Falta quantity' });
 
-      if (!quantity || quantity <= 0) {
-        return res.status(400).json({ success: false, message: 'Cantidad inválida' });
-      }
+      const item = await CartItem.update(id, quantity, user_id); // aseguramos que solo pueda actualizar sus items
+      if (!item) return res.status(404).json({ success: false, message: 'Item no encontrado' });
 
-      const updated = await CartItem.update(id, { quantity });
-      if (!updated) return res.status(404).json({ success: false, message: 'Item no encontrado' });
-
-      res.json({ success: true, item: updated });
+      res.json({ success: true, item });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Error al actualizar carrito' });
+      res.status(500).json({ success: false, message: 'Error al actualizar item', error: error.message });
     }
   },
 
   delete: async (req, res) => {
     try {
+      const user_id = req.user?.user_id;
       const { id } = req.params;
-      const deleted = await CartItem.delete(id);
+      if (!user_id) return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+
+      const deleted = await CartItem.delete(id, user_id); // solo elimina si pertenece al usuario
       if (!deleted) return res.status(404).json({ success: false, message: 'Item no encontrado' });
+
       res.json({ success: true, message: 'Item eliminado' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Error al eliminar item' });
-    }
-  },
-
-  clear: async (req, res) => {
-    try {
-      const userId = req.user.user_id;
-      await CartItem.clearByUser(userId);
-      res.json({ success: true, message: 'Carrito vaciado' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Error al vaciar carrito' });
+      res.status(500).json({ success: false, message: 'Error al eliminar item', error: error.message });
     }
   }
 };

@@ -1,10 +1,9 @@
 import { authManager } from "./auth.js";
-/**
- * API utilities for making HTTP requests to the e-commerce backend
- * Handles all CRUD operations for ebooks, categories, and authentication
- */
 
-class ApiClient {
+/**
+ * API utilities for making HTTP requests to the backend
+ */
+export class ApiClient {
     constructor() {
         this.baseURL = 'http://localhost:3000/api';
         this.defaultHeaders = {
@@ -12,12 +11,6 @@ class ApiClient {
         };
     }
 
-    /**
-     * Make HTTP request with proper error handling
-     * @param {string} endpoint - API endpoint path
-     * @param {Object} options - Fetch options (method, headers, body, etc.)
-     * @returns {Promise<Object>} API response data
-     */
     async makeRequest(endpoint, options = {}) {
         try {
             const url = `${this.baseURL}${endpoint}`;
@@ -40,25 +33,11 @@ class ApiClient {
             return data;
         } catch (error) {
             console.error('API Request failed:', error);
-            
-            // Handle authentication errors - but don't auto-logout on API errors
-            if (error.message.includes('401') || error.message.includes('unauthorized')) {
-                console.warn('Authentication error in API call:', error.message);
-                // Don't automatically logout, let the calling code handle it
-            }
-            
             throw error;
         }
     }
 
-    // ==================== AUTHENTICATION ENDPOINTS ====================
-
-    /**
-     * User login
-     * @param {string} email - User email
-     * @param {string} password - User password
-     * @returns {Promise<Object>} Login response with token and user data
-     */
+    // ==================== AUTH ====================
     async login(email, password) {
         return this.makeRequest('/auth/login', {
             method: 'POST',
@@ -66,11 +45,6 @@ class ApiClient {
         });
     }
 
-    /**
-     * User registration
-     * @param {Object} userData - User registration data
-     * @returns {Promise<Object>} Registration response
-     */
     async register(userData) {
         return this.makeRequest('/auth/register', {
             method: 'POST',
@@ -78,19 +52,10 @@ class ApiClient {
         });
     }
 
-    /**
-     * Get user profile
-     * @returns {Promise<Object>} User profile data
-     */
     async getProfile() {
         return this.makeRequest('/auth/profile');
     }
 
-    /**
-     * Update user profile
-     * @param {Object} profileData - Updated profile data
-     * @returns {Promise<Object>} Updated profile response
-     */
     async updateProfile(profileData) {
         return this.makeRequest('/auth/profile', {
             method: 'PUT',
@@ -98,153 +63,126 @@ class ApiClient {
         });
     }
 
-    // ==================== EBOOKS CRUD ENDPOINTS ====================
-
-    /**
-     * Get all ebooks (filtered by user role)
-     * @returns {Promise<Array>} Array of ebook objects
-     */
+    // ==================== EBOOKS ====================
     async getEbooks() {
-        const response = await this.makeRequest('/ebooks');
-        return response.data || [];
+        const resp = await this.makeRequest('/ebooks');
+        return resp.data || resp.ebooks || [];
     }
 
-    /**
-     * Get single ebook by ID
-     * @param {number} ebookId - Ebook ID
-     * @returns {Promise<Object>} Ebook object
-     */
     async getEbook(ebookId) {
-        const response = await this.makeRequest(`/ebooks/${ebookId}`);
-        return response.data || response.ebook;
+        const resp = await this.makeRequest(`/ebooks/${ebookId}`);
+        return resp.data || resp.ebook;
     }
 
-    /**
-     * Create new ebook
-     * @param {Object} ebookData - Ebook data (name, description, price, category_id)
-     * @returns {Promise<Object>} Created ebook object
-     */
-    async createEbook(ebookData) {
-        const response = await this.makeRequest('/ebooks', {
-            method: 'POST',
-            body: JSON.stringify(ebookData)
-        });
-        return response.ebook;
-    }
-
-    /**
-     * Update existing ebook
-     * @param {number} ebookId - Ebook ID to update
-     * @param {Object} ebookData - Updated ebook data
-     * @returns {Promise<Object>} Updated ebook object
-     */
-    async updateEbook(ebookId, ebookData) {
-        const response = await this.makeRequest(`/ebooks/${ebookId}`, {
-            method: 'PUT',
-            body: JSON.stringify(ebookData)
-        });
-        return response.ebook;
-    }
-
-    /**
-     * Delete ebook
-     * @param {number} ebookId - Ebook ID to delete
-     * @returns {Promise<Object>} Deletion confirmation
-     */
-    async deleteEbook(ebookId) {
-        return this.makeRequest(`/ebooks/${ebookId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // ==================== CATEGORIES ENDPOINTS ====================
-
-    /**
-     * Get all categories
-     * @returns {Promise<Array>} Array of category objects
-     */
-    async getCategories() {
-        const response = await this.makeRequest('/categories');
-        return response.data || response.categories || [];
-    }
-
-    /**
-     * Create new category (admin only)
-     * @param {Object} categoryData - Category data (name, description)
-     * @returns {Promise<Object>} Created category object
-     */
-    async createCategory(categoryData) {
-        const response = await this.makeRequest('/categories', {
-            method: 'POST',
-            body: JSON.stringify(categoryData)
-        });
-        return response.category;
-    }
-
-    /**
-     * Update category (admin only)
-     * @param {number} categoryId - Category ID to update
-     * @param {Object} categoryData - Updated category data
-     * @returns {Promise<Object>} Updated category object
-     */
-    async updateCategory(categoryId, categoryData) {
-        const response = await this.makeRequest(`/categories/${categoryId}`, {
-            method: 'PUT',
-            body: JSON.stringify(categoryData)
-        });
-        return response.category;
-    }
-
-    /**
-     * Delete category (admin only)
-     * @param {number} categoryId - Category ID to delete
-     * @returns {Promise<Object>} Deletion confirmation
-     */
-    async deleteCategory(categoryId) {
-        return this.makeRequest(`/categories/${categoryId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // ==================== UTILITY METHODS ====================
-
-    /**
-     * Check API health
-     * @returns {Promise<Object>} Health check response
-     */
-    async healthCheck() {
-        return this.makeRequest('/health');
-    }
-
-    /**
-     * Search ebooks by name or description
-     * @param {string} query - Search query
-     * @returns {Promise<Array>} Filtered ebooks array
-     */
     async searchEbooks(query) {
         const ebooks = await this.getEbooks();
         if (!query) return ebooks;
-
-        const searchTerm = query.toLowerCase();
-        return ebooks.filter(ebook => 
-            ebook.name.toLowerCase().includes(searchTerm) ||
-            (ebook.description && ebook.description.toLowerCase().includes(searchTerm))
-        );
+        const term = query.toLowerCase();
+        return ebooks.filter(e => e.name.toLowerCase().includes(term) ||
+        (e.description && e.description.toLowerCase().includes(term)));
     }
 
-    /**
-     * Get ebooks by category
-     * @param {number} categoryId - Category ID to filter by
-     * @returns {Promise<Array>} Filtered ebooks array
-     */
     async getEbooksByCategory(categoryId) {
         const ebooks = await this.getEbooks();
-        return ebooks.filter(ebook => ebook.category_id === categoryId);
+        return ebooks.filter(e => e.category_id === categoryId);
     }
-}
 
-// Create global API client instance
+    async createEbook(data) {
+        const resp = await this.makeRequest('/ebooks', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        return resp.ebook;
+    }
+
+    async updateEbook(id, data) {
+        const resp = await this.makeRequest(`/ebooks/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        return resp.ebook;
+    }
+
+    async deleteEbook(id) {
+        return this.makeRequest(`/ebooks/${id}`, { method: 'DELETE' });
+    }
+
+    // ==================== CATEGORIES ====================
+    async getCategories() {
+        const resp = await this.makeRequest('/categories');
+        return resp.data || resp.categories || [];
+    }
+
+    async createCategory(data) {
+        const resp = await this.makeRequest('/categories', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        return resp.category;
+    }
+
+    async updateCategory(id, data) {
+        const resp = await this.makeRequest(`/categories/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        return resp.category;
+    }
+
+    async deleteCategory(id) {
+        return this.makeRequest(`/categories/${id}`, { method: 'DELETE' });
+    }
+
+    // ==================== CART ====================
+    async getCart() {
+        // Obtiene carrito del usuario autenticado (usa token)
+        const resp = await this.makeRequest('/cart');
+        return resp.data || resp.cart || [];
+    }
+
+    async addToCart(cartItem) {
+        // cartItem = { ebook_id, quantity }
+        const resp = await this.makeRequest('/cart', {
+            method: 'POST',
+            body: JSON.stringify(cartItem)
+        });
+        return resp.data || resp.cartItem || resp;
+    }
+
+    async updateCartItem(cartItemId, quantity) {
+        const resp = await this.makeRequest(`/cart/${cartItemId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ quantity })
+        });
+        return resp.data || resp.cartItem || resp;
+    }
+
+    async deleteCartItem(cartItemId) {
+        return this.makeRequest(`/cart/${cartItemId}`, { method: 'DELETE' });
+    }
+
+    async createSellerRequest(data) {
+    const response = await this.makeRequest('/seller-requests', {
+    method: 'POST',
+    body: JSON.stringify(data)
+    });
+    return response.data || response.request || response;
+    }
+
+    // Obtener todas las solicitudes (para admin)
+    async getSellerRequests() {
+    const response = await this.makeRequest('/seller-requests');
+    return response.data || response.sellerRequests || [];
+    }
+
+    // Actualizar estado de solicitud (aprobar/rechazar)
+    async updateSellerRequestStatus(request_id, sr_status_id) {
+    const response = await this.makeRequest(`/    seller-requests/${request_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ sr_status_id })
+        });
+        return response.data || response.sellerRequest || response;
+    }
+}   
+
 export const apiClient = new ApiClient();
-
-// Export for use in other modules
-// window.apiClient = apiClient;
