@@ -39,13 +39,41 @@
     </div>
   </nav>
 
-  <!-- FILTROS -->
-  <div class="p-4 flex flex-col md:flex-row md:items-center md:space-x-4">
-    <input id="filter-input" type="text" placeholder="Buscar ebooks..." class="p-2 border rounded w-full md:w-1/2 mb-2 md:mb-0">
-    <select id="filter-category" class="p-2 border rounded w-full md:w-1/4">
-      <option value="">Todas</option>
-    </select>
-    <button id="add-ebook-btn" class="ml-auto bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 hidden">Agregar Ebook</button>
+  <!-- Contenedor principal -->
+  <div class="container mx-auto mt-6 flex space-x-6">
+    
+    <!-- Sección principal -->
+    <div class="flex-1 space-y-6">
+
+      <!-- Filtros y botones -->
+      <div class="flex justify-between items-center">
+        <input type="text" id="search-input" placeholder="Buscar ebook..." class="p-2 border rounded w-1/3">
+        <select id="ebook-category" class="p-2 border rounded"></select>
+        <button id="add-ebook-btn" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 hidden">Agregar Ebook</button>
+      </div>
+
+      <!-- Spinner -->
+      <div id="loading-spinner" class="hidden text-center">Cargando...</div>
+
+      <!-- Grid ebooks -->
+      <div id="ebooks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!-- Estado vacío -->
+      <div id="empty-state" class="text-gray-500 text-center hidden">No hay ebooks disponibles</div>
+
+      <!-- Contador -->
+      <div id="ebooks-count" class="text-gray-700 font-medium"></div>
+
+    </div>
+
+    <!-- Carrito -->
+    <div class="w-64 bg-white p-4 rounded shadow hidden md:block" id="cart-section">
+      <h2 class="font-bold mb-2">Carrito</h2>
+      <div id="cart-content" class="space-y-2">
+        <p class="text-gray-600">Carrito vacío</p>
+      </div>
+    </div>
+
   </div>
 
   <!-- CONTENEDOR DE EBOOKS -->

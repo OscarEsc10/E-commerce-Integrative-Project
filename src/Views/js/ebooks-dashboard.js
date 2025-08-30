@@ -41,9 +41,10 @@ class EbooksDashboard {
     const cartBtn = document.getElementById('btn-cart');
     const cartSection = document.getElementById('cart-section');
 
-    if (userNameEl) userNameEl.textContent = this.user.name || 'Usuario';
-    if (userAvatarEl) userAvatarEl.textContent = (this.user.name || 'U')[0].toUpperCase();
-    if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${this.user.name || 'Usuario'}`;
+    if (userNameEl) userNameEl.textContent = this.user.full_name || this.user.name || 'Usuario';
+    if (userRoleEl) userRoleEl.textContent = this.user.role || 'customer';
+    if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${this.user.full_name || this.user.name || 'Usuario'}`;
+    if (userAvatarEl) userAvatarEl.textContent = (this.user.full_name || this.user.name || 'U')[0].toUpperCase();
 
     if (logoutBtn) logoutBtn.addEventListener('click', () => authManager.logout());
     if (backBtn) backBtn.addEventListener('click', () => window.location.href = '/dashboard.html');
@@ -92,6 +93,8 @@ class EbooksDashboard {
     } catch (err) {
       console.error('Error cargando ebooks:', err);
       this.showError('No se pudieron cargar los ebooks.');
+    } finally {
+      this.showSpinner(false);
     }
   }
 
@@ -144,8 +147,134 @@ class EbooksDashboard {
     }
   }
 
-  showError(msg) { alert(msg); }
-  showSuccess(msg) { alert(msg); }
+  removeFromCart(idx) {
+    this.cart.splice(idx,1);
+    this.renderCart();
+  }
+
+  updateEbooksCount() {
+    const countEl = document.getElementById('ebooks-count');
+    if (countEl) countEl.textContent = `${this.ebooks.length} items`;
+  }
+
+  showSpinner(show) {
+    const spinner = document.getElementById('loading-spinner');
+    if (!spinner) return;
+    spinner.classList.toggle('hidden', !show);
+  }
+
+  showError(msg) {
+    const errEl = document.getElementById('error-message');
+    const errText = document.getElementById('error-text');
+    if (errEl && errText) {
+      errText.textContent = msg;
+      errEl.classList.remove('hidden');
+      setTimeout(() => errEl.classList.add('hidden'), 3000);
+    }
+  }
+
+  showSuccess(msg) {
+    const sucEl = document.getElementById('success-message');
+    const sucText = document.getElementById('success-text');
+    if (sucEl && sucText) {
+      sucText.textContent = msg;
+      sucEl.classList.remove('hidden');
+      setTimeout(() => sucEl.classList.add('hidden'), 3000);
+    }
+  }
+
+  /* ------------------------
+     Listeners
+  ------------------------ */
+  attachStaticListeners() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', e => {
+        const term = e.target.value.toLowerCase();
+        const filtered = this.ebooks.filter(eb => eb.name.toLowerCase().includes(term));
+        this.renderFilteredEbooks(filtered);
+      });
+    }
+
+    const addBtn = document.getElementById('add-ebook-btn');
+    if (addBtn) addBtn.addEventListener('click', () => this.openEbookModal());
+  }
+
+  renderFilteredEbooks(list) {
+    const grid = document.getElementById('ebooks-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    list.forEach(ebook => {
+      const div = document.createElement('div');
+      div.textContent = ebook.name; 
+      grid.appendChild(div);
+    });
+  }
+
+  openEbookModal(ebook=null) {
+    const modal = document.getElementById('ebook-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    if (ebook) {
+      document.getElementById('ebook-id').value = ebook.id || '';
+      document.getElementById('ebook-name').value = ebook.name || '';
+      document.getElementById('ebook-description').value = ebook.description || '';
+      document.getElementById('ebook-price').value = ebook.price || '';
+      document.getElementById('ebook-category').value = ebook.category_id || '';
+    } else {
+      document.getElementById('ebook-form').reset();
+    }
+
+    document.getElementById('close-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('cancel-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
+
+    document.getElementById('ebook-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await this.saveEbook();
+      modal.classList.add('hidden');
+    }, {once:true});
+  }
+
+  async saveEbook() {
+    const id = document.getElementById('ebook-id').value;
+    const name = document.getElementById('ebook-name').value;
+    const description = document.getElementById('ebook-description').value;
+    const price = parseFloat(document.getElementById('ebook-price').value);
+    const category_id = document.getElementById('ebook-category').value;
+
+    try {
+      if (id) await apiClient.updateEbook(id, {name, description, price, category_id});
+      else await apiClient.createEbook({name, description, price, category_id, seller_id:this.user.user_id});
+      this.showSuccess(id ? 'Ebook actualizado' : 'Ebook creado');
+      await this.loadEbooks();
+    } catch (err) {
+      console.error(err);
+      this.showError('Error al guardar ebook');
+    }
+  }
+
+  openDeleteModal(ebook) {
+    const modal = document.getElementById('delete-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.getElementById('delete-ebook-name').textContent = ebook.name || '';
+
+    document.getElementById('cancel-delete')?.addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('confirm-delete')?.addEventListener('click', async () => {
+      try {
+        await apiClient.deleteEbook(ebook.id);
+        this.showSuccess('Ebook eliminado');
+        await this.loadEbooks();
+      } catch (err) {
+        console.error(err);
+        this.showError('Error al eliminar ebook');
+      } finally {
+        modal.classList.add('hidden');
+      }
+    }, {once:true});
+  }
 }
 
+// Inicialización global
 window.dashboard = new EbooksDashboard();

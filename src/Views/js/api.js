@@ -133,32 +133,40 @@ export class ApiClient {
         return this.makeRequest(`/categories/${id}`, { method: 'DELETE' });
     }
 
-    // ==================== CART ====================
-    async getCart() {
-        // Obtiene carrito del usuario autenticado (usa token)
-        const resp = await this.makeRequest('/cart');
-        return resp.data || resp.cart || [];
+    // ==================== UTILITY METHODS ====================
+
+    /**
+     * Check API health
+     * @returns {Promise<Object>} Health check response
+     */
+    async healthCheck() {
+        return this.makeRequest('/health');
     }
 
-    async addToCart(cartItem) {
-        // cartItem = { ebook_id, quantity }
-        const resp = await this.makeRequest('/cart', {
-            method: 'POST',
-            body: JSON.stringify(cartItem)
-        });
-        return resp.data || resp.cartItem || resp;
+    /**
+     * Search ebooks by name or description
+     * @param {string} query - Search query
+     * @returns {Promise<Array>} Filtered ebooks array
+     */
+    async searchEbooks(query) {
+        const ebooks = await this.getEbooks();
+        if (!query) return ebooks;
+
+        const searchTerm = query.toLowerCase();
+        return ebooks.filter(ebook => 
+            ebook.name.toLowerCase().includes(searchTerm) ||
+            (ebook.description && ebook.description.toLowerCase().includes(searchTerm))
+        );
     }
 
-    async updateCartItem(cartItemId, quantity) {
-        const resp = await this.makeRequest(`/cart/${cartItemId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ quantity })
-        });
-        return resp.data || resp.cartItem || resp;
-    }
-
-    async deleteCartItem(cartItemId) {
-        return this.makeRequest(`/cart/${cartItemId}`, { method: 'DELETE' });
+    /**
+     * Get ebooks by category
+     * @param {number} categoryId - Category ID to filter by
+     * @returns {Promise<Array>} Filtered ebooks array
+     */
+    async getEbooksByCategory(categoryId) {
+        const ebooks = await this.getEbooks();
+        return ebooks.filter(ebook => ebook.category_id === categoryId);
     }
 
     async createSellerRequest(data) {
@@ -185,4 +193,5 @@ export class ApiClient {
     }
 }   
 
+// Create global API client instance
 export const apiClient = new ApiClient();
