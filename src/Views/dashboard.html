@@ -102,13 +102,28 @@
     <div id="sales-summary-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
       <div id="sales-summary-content"></div>
     </div>
-    <div id="become-seller-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
-      <h3 class="text-xl font-bold mb-2">Solicitud para ser Vendedor</h3>
-      <p class="text-gray-600">Funcionalidad en desarrollo 🚧</p>
-    </div>
+    <section id="sellers-section" class="dashboard-section hidden bg-white p-6 rounded-lg shadow">
+  <div class="max-w-7xl mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">Solicitudes de Vendedor</h2>
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr>
+          <th class="border p-2">ID</th>
+          <th class="border p-2">Usuario</th>
+          <th class="border p-2">Negocio</th>
+          <th class="border p-2">Documento</th>
+          <th class="border p-2">Estado</th>
+          <th class="border p-2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="seller-requests-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
     <div id="cart-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
       <h3 class="text-xl font-bold mb-2">Carrito</h3>
-      <div id="cart-content" class="text-gray-600">Carrito vacío 🚀</div>
+      <div id="cart-list" class="text-gray-600">Carrito vacío 🚀</div>
     </div>
     <div id="profile-section" class="dashboard-section hidden bg-white rounded-2xl shadow-lg p-8 mt-8">
       <div id="profile-content"></div>
@@ -129,6 +144,6 @@
     </div>
   </footer>
 
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>

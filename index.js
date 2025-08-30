@@ -15,9 +15,11 @@ import userRoutes from "./src/Routes/userRoutes.js";
 import EbookRoutes from "./src/Routes/EbookRoutes.js";
 import categoryRoutes from "./src/Routes/categoryRoutes.js";
 import CartRoutes from "./src/Routes/CartRoutes.js";
-import viewRoutes from "./src/Routes/viewRoutes.js";
-// import productRoutes from "./src/Routes/products.routes.js";
-// import orderRoutes from "./src/Routes/orders.routes.js";
+import sellerRequestRoutes from "./src/Routes/sellerRequestRoutes.js";
+import OrdersRoutes from './src/Routes/OrdersRoutes.js';
+import adressRoutes from './src/Routes/addressRoutes.js'
+import PaymentsRoutes from './src/Routes/PaymentsRoutes.js';
+import invoicesRoutes from './src/Routes/InvoiceRoutes.js';
 
 // ES module dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -37,13 +39,26 @@ app.use("/api/users", userRoutes);
 app.use("/api/ebooks", EbookRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", CartRoutes);
-// app.use("/api/orders", orderRoutes);
+app.use("/api/seller-requests", sellerRequestRoutes);
+app.use('/api/orders', OrdersRoutes);
+app.use("/api/addresses", adressRoutes);
+app.use('/api/payments', PaymentsRoutes);
+app.use('/api/invoices', invoicesRoutes);
 
-// View Routes (clean URLs)
-app.use("/", viewRoutes);
 
-// Static Assets
-app.use('/Assest', express.static('Assest'));
+// Static Views (solo si necesitas HTML desde backend)
+app.use(express.static(path.join(__dirname, "src", "Views")));
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "Login.html"))
+);
+
+// Dashboard routes
+app.get("/ebooks-dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
+);
+app.get("/dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
+);
 
 // Healthcheck
 app.get("/api/health", (req, res) => {

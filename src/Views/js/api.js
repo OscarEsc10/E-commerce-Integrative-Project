@@ -3,7 +3,7 @@ import { authManager } from "./auth.js";
 /**
  * API utilities for making HTTP requests to the backend
  */
-class ApiClient {
+export class ApiClient {
     constructor() {
         this.baseURL = 'http://localhost:3000/api';
         this.defaultHeaders = {
@@ -79,7 +79,7 @@ class ApiClient {
         if (!query) return ebooks;
         const term = query.toLowerCase();
         return ebooks.filter(e => e.name.toLowerCase().includes(term) ||
-                                  (e.description && e.description.toLowerCase().includes(term)));
+        (e.description && e.description.toLowerCase().includes(term)));
     }
 
     async getEbooksByCategory(categoryId) {
@@ -160,6 +160,29 @@ class ApiClient {
     async deleteCartItem(cartItemId) {
         return this.makeRequest(`/cart/${cartItemId}`, { method: 'DELETE' });
     }
-}
+
+    async createSellerRequest(data) {
+    const response = await this.makeRequest('/seller-requests', {
+    method: 'POST',
+    body: JSON.stringify(data)
+    });
+    return response.data || response.request || response;
+    }
+
+    // Obtener todas las solicitudes (para admin)
+    async getSellerRequests() {
+    const response = await this.makeRequest('/seller-requests');
+    return response.data || response.sellerRequests || [];
+    }
+
+    // Actualizar estado de solicitud (aprobar/rechazar)
+    async updateSellerRequestStatus(request_id, sr_status_id) {
+    const response = await this.makeRequest(`/    seller-requests/${request_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ sr_status_id })
+        });
+        return response.data || response.sellerRequest || response;
+    }
+}   
 
 export const apiClient = new ApiClient();
