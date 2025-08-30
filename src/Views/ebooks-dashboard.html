@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard Ebooks</title>
+  <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
   <script type="module" src="/js/ebooks-dashboard.js" defer></script>
+  <script src="/js/modern-pagination.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/Assest/css/dashboard.css">
+  <link rel="stylesheet" href="/Assest/css/modern-pagination.css">
   <script>
     tailwind.config = {
       theme: {
@@ -35,34 +39,88 @@
     </div>
   </nav>
 
-  <!-- FILTROS -->
-  <div class="p-4 flex flex-col md:flex-row md:items-center md:space-x-4">
-    <input id="filter-input" type="text" placeholder="Buscar ebooks..." class="p-2 border rounded w-full md:w-1/2 mb-2 md:mb-0">
-    <select id="filter-category" class="p-2 border rounded w-full md:w-1/4">
-      <option value="">Todas</option>
-    </select>
-    <button id="add-ebook-btn" class="ml-auto bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 hidden">Agregar Ebook</button>
-  </div>
+  <!-- Contenedor principal -->
+  <div class="container mx-auto mt-6 flex space-x-6">
+    
+    <!-- Sección principal -->
+    <div class="flex-1 space-y-6">
 
-  <!-- CONTENEDOR DE EBOOKS -->
-  <div id="ebooksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"></div>
+      <!-- Filtros y botones -->
+      <div class="flex justify-between items-center">
+        <input type="text" id="search-input" placeholder="Buscar ebook..." class="p-2 border rounded w-1/3">
+        <select id="ebook-category" class="p-2 border rounded"></select>
+        <button id="add-ebook-btn" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 hidden">Agregar Ebook</button>
+      </div>
 
-    <!-- Modal Carrito -->
-  <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-lg shadow-lg w-96 max-h-[80vh] overflow-y-auto p-4">
-      <h3 class="text-lg font-semibold mb-2">🛒 Carrito</h3>
-      <div id="cartItems" class="divide-y divide-gray-200 mb-4">
-        <!-- Items dinámicos -->
-      </div>
-      <div class="flex justify-between items-center font-bold text-lg">
-        <span>Total:</span>
-        <span id="cartTotal">$0.00</span>
-      </div>
-      <div class="mt-4 flex justify-end space-x-2">
-        <button id="closeCart" class="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400">Cerrar</button>
-        <button id="checkoutBtn" class="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600">Comprar</button>
+      <!-- Spinner -->
+      <div id="loading-spinner" class="hidden text-center">Cargando...</div>
+
+      <!-- Grid ebooks -->
+      <div id="ebooks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!-- Estado vacío -->
+      <div id="empty-state" class="text-gray-500 text-center hidden">No hay ebooks disponibles</div>
+
+      <!-- Contador -->
+      <div id="ebooks-count" class="text-gray-700 font-medium"></div>
+
+    </div>
+
+    <!-- Carrito -->
+    <div class="w-64 bg-white p-4 rounded shadow hidden md:block" id="cart-section">
+      <h2 class="font-bold mb-2">Carrito</h2>
+      <div id="cart-content" class="space-y-2">
+        <p class="text-gray-600">Carrito vacío</p>
       </div>
     </div>
+
+  </div>
+
+  <!-- Sección perfil -->
+  <div id="profile-section" class="hidden container mx-auto mt-6">
+    <h2 class="font-bold text-lg mb-4">Perfil</h2>
+    <div id="profile-content" class="space-y-4"></div>
+  </div>
+
+  <!-- Modales -->
+
+  <!-- Crear/Editar Ebook -->
+  <div id="ebook-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow w-96 relative">
+      <h3 class="font-bold mb-4">Ebook</h3>
+      <form id="ebook-form" class="space-y-3">
+        <input type="hidden" id="ebook-id">
+        <input type="text" id="ebook-name" placeholder="Nombre" class="w-full p-2 border rounded" required>
+        <textarea id="ebook-description" placeholder="Descripción" class="w-full p-2 border rounded"></textarea>
+        <input type="number" id="ebook-price" placeholder="Precio" class="w-full p-2 border rounded" required>
+        <select id="ebook-category" class="w-full p-2 border rounded"></select>
+        <div class="flex justify-end space-x-2">
+          <button type="button" id="cancel-btn" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+          <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Guardar</button>
+        </div>
+      </form>
+      <button id="close-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">×</button>
+    </div>
+  </div>
+
+  <!-- Eliminar Ebook -->
+  <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow w-96 relative">
+      <h3 class="font-bold mb-4">Confirmar eliminación</h3>
+      <p>¿Eliminar <span id="delete-ebook-name" class="font-semibold"></span>?</p>
+      <div class="flex justify-end space-x-2 mt-4">
+        <button id="cancel-delete" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+        <button id="confirm-delete" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  <div id="error-message" class="fixed bottom-4 right-4 bg-red-500 text-white p-3 rounded hidden">
+    <span id="error-text"></span>
+  </div>
+  <div id="success-message" class="fixed bottom-4 right-4 bg-green-500 text-white p-3 rounded hidden">
+    <span id="success-text"></span>
   </div>
 
 </body>

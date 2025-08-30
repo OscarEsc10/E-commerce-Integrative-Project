@@ -127,10 +127,18 @@ function attachEventListeners(user) {
     if (el) el.addEventListener('click', fn);
   };
 
-  // Navegación / secciones
-  on('btn-view-catalog', () => window.location.href = 'ebooks-dashboard.html'); // página separada
-  on('btn-manage-ebooks', () => window.location.href = 'ebooks-dashboard.html'); // admins/sellers van a la vista de ebooks dedicada
 
+  // Customer: view catalog
+  on('btn-view-catalog', () => {
+    window.location.href = 'ebooks-dashboard.html';
+  });
+
+  // Manage ebooks (admin & seller)
+  on('btn-manage-ebooks', () => {
+    window.location.href = 'ebooks-dashboard.html';
+  });
+
+  // Manage orders (admin & seller)
   on('btn-manage-orders', () => {
     loadSection('orders-section');
     renderOrders();

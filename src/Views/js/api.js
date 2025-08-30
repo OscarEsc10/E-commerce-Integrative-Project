@@ -3,7 +3,8 @@ import { authManager } from "./auth.js";
 /**
  * API utilities for making HTTP requests to the backend
  */
-export class ApiClient {
+
+class ApiClient {
     constructor() {
         this.baseURL = 'http://localhost:3000/api';
         this.defaultHeaders = {
@@ -74,21 +75,13 @@ export class ApiClient {
         return resp.data || resp.ebook;
     }
 
-    async searchEbooks(query) {
-        const ebooks = await this.getEbooks();
-        if (!query) return ebooks;
-        const term = query.toLowerCase();
-        return ebooks.filter(e => e.name.toLowerCase().includes(term) ||
-        (e.description && e.description.toLowerCase().includes(term)));
-    }
-
-    async getEbooksByCategory(categoryId) {
-        const ebooks = await this.getEbooks();
-        return ebooks.filter(e => e.category_id === categoryId);
-    }
-
-    async createEbook(data) {
-        const resp = await this.makeRequest('/ebooks', {
+    /**
+     * Create new ebook
+     * @param {Object} ebookData - Ebook data (name, description, price, category_id)
+     * @returns {Promise<Object>} Created ebook object
+     */
+    async createEbook(ebookData) {
+        const response = await this.makeRequest('/ebooks', {
             method: 'POST',
             body: JSON.stringify(data)
         });
@@ -133,56 +126,42 @@ export class ApiClient {
         return this.makeRequest(`/categories/${id}`, { method: 'DELETE' });
     }
 
-    // ==================== CART ====================
-    async getCart() {
-        // Obtiene carrito del usuario autenticado (usa token)
-        const resp = await this.makeRequest('/cart');
-        return resp.data || resp.cart || [];
+    // ==================== UTILITY METHODS ====================
+
+    /**
+     * Check API health
+     * @returns {Promise<Object>} Health check response
+     */
+    async healthCheck() {
+        return this.makeRequest('/health');
     }
 
-    async addToCart(cartItem) {
-        // cartItem = { ebook_id, quantity }
-        const resp = await this.makeRequest('/cart', {
-            method: 'POST',
-            body: JSON.stringify(cartItem)
-        });
-        return resp.data || resp.cartItem || resp;
+    /**
+     * Search ebooks by name or description
+     * @param {string} query - Search query
+     * @returns {Promise<Array>} Filtered ebooks array
+     */
+    async searchEbooks(query) {
+        const ebooks = await this.getEbooks();
+        if (!query) return ebooks;
+
+        const searchTerm = query.toLowerCase();
+        return ebooks.filter(ebook => 
+            ebook.name.toLowerCase().includes(searchTerm) ||
+            (ebook.description && ebook.description.toLowerCase().includes(searchTerm))
+        );
     }
 
-    async updateCartItem(cartItemId, quantity) {
-        const resp = await this.makeRequest(`/cart/${cartItemId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ quantity })
-        });
-        return resp.data || resp.cartItem || resp;
+    /**
+     * Get ebooks by category
+     * @param {number} categoryId - Category ID to filter by
+     * @returns {Promise<Array>} Filtered ebooks array
+     */
+    async getEbooksByCategory(categoryId) {
+        const ebooks = await this.getEbooks();
+        return ebooks.filter(ebook => ebook.category_id === categoryId);
     }
+}
 
-    async deleteCartItem(cartItemId) {
-        return this.makeRequest(`/cart/${cartItemId}`, { method: 'DELETE' });
-    }
-
-    async createSellerRequest(data) {
-    const response = await this.makeRequest('/seller-requests', {
-    method: 'POST',
-    body: JSON.stringify(data)
-    });
-    return response.data || response.request || response;
-    }
-
-    // Obtener todas las solicitudes (para admin)
-    async getSellerRequests() {
-    const response = await this.makeRequest('/seller-requests');
-    return response.data || response.sellerRequests || [];
-    }
-
-    // Actualizar estado de solicitud (aprobar/rechazar)
-    async updateSellerRequestStatus(request_id, sr_status_id) {
-    const response = await this.makeRequest(`/    seller-requests/${request_id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ sr_status_id })
-        });
-        return response.data || response.sellerRequest || response;
-    }
-}   
-
+// Create global API client instance
 export const apiClient = new ApiClient();
