@@ -51,6 +51,14 @@ Object.entries(redirects).forEach(([oldRoute, newRoute]) => {
 });
 
 // Serve static assets
+router.get('/catalog', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Views/catalog.html'));
+});
+
+router.get('/checkout', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Views/checkout.html'));
+});
+
 router.use('/Assest', (req, res, next) => {
   const assetsPath = path.join(__dirname, '../../Assest');
   res.sendFile(path.join(assetsPath, req.path), (err) => {

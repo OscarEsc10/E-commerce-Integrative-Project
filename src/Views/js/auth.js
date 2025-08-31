@@ -28,12 +28,16 @@ class AuthManager {
 
     isAuthenticated() {
         const token = this.getToken();
+        console.log('Checking token:', token ? 'exists' : 'missing');
+        
         if (!token) return false;
 
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const currentTime = Date.now() / 1000;
-            return payload.exp > currentTime;
+            const isValid = payload.exp > currentTime;
+            console.log('Token valid:', isValid, 'expires:', new Date(payload.exp * 1000));
+            return isValid;
         } catch (error) {
             console.error('Invalid token format:', error);
             localStorage.removeItem(this.tokenKey);
@@ -48,16 +52,25 @@ class AuthManager {
     }
 
     logout() {
+        console.log('Logout called - clearing localStorage');
         localStorage.removeItem(this.tokenKey);
         localStorage.removeItem(this.userKey);
+        localStorage.clear(); // Clear all localStorage just in case
+        console.log('Redirecting to /login');
         window.location.href = '/login';
     }
 
     requireAuth() {
-        if (!this.isAuthenticated()) {
+        console.log('Checking authentication...');
+        const isAuth = this.isAuthenticated();
+        console.log('Is authenticated:', isAuth);
+        
+        if (!isAuth) {
+            console.log('Not authenticated, redirecting to login');
             window.location.href = '/login';
             return false;
         }
+        console.log('Authentication check passed');
         return true;
     }
 

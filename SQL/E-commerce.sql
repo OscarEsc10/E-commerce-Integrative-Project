@@ -147,4 +147,3 @@ CREATE TABLE seller_requests (
     sr_status_id INT REFERENCES seller_request_status(sr_status_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-

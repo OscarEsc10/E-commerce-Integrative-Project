@@ -20,6 +20,7 @@ import OrdersRoutes from './src/Routes/OrdersRoutes.js';
 import adressRoutes from './src/Routes/addressRoutes.js'
 import PaymentsRoutes from './src/Routes/PaymentsRoutes.js';
 import invoicesRoutes from './src/Routes/InvoiceRoutes.js';
+import viewRoutes from "./src/Routes/viewRoutes.js";
 
 // ES module dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -45,20 +46,11 @@ app.use("/api/addresses", adressRoutes);
 app.use('/api/payments', PaymentsRoutes);
 app.use('/api/invoices', invoicesRoutes);
 
+// View Routes (clean URLs)
+app.use("/", viewRoutes);
 
-// Static Views (solo si necesitas HTML desde backend)
-app.use(express.static(path.join(__dirname, "src", "Views")));
-app.get("/", (req, res) =>
-  res.sendFile(path.join(__dirname, "src", "Views", "Login.html"))
-);
-
-// Dashboard routes
-app.get("/ebooks-dashboard.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
-);
-app.get("/dashboard.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "src", "Views", "ebooks-dashboard.html"))
-);
+// Static Assets
+app.use('/Assest', express.static('Assest'));
 
 // Healthcheck
 app.get("/api/health", (req, res) => {

@@ -1,40 +1,100 @@
 /* Catalog Styles */
+.header-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
 .ebook-card {
-    transition: all 0.3s ease;
-    transform: translateY(0);
-    border: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
 }
 
 .ebook-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border-color: #d1d5db;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.pagination-container {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin: 2rem auto;
+    max-width: 800px;
+    position: sticky;
+    bottom: 20px;
+    z-index: 10;
+}
+
+.loading-spinner {
+    display: none;
 }
 
 .price-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(45deg, #28a745, #20c997);
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
     font-weight: bold;
-    font-size: 0.875rem;
 }
 
 .category-badge {
-    background-color: #f3f4f6;
-    color: #374151;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
+    background: linear-gradient(45deg, #6f42c1, #e83e8c);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
 }
 
-/* Search Section */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.main-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.ebooks-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
+    padding-bottom: 100px;
+}
+
 .search-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    margin: 2rem 0;
+}
+
+.search-row {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.form-control, .form-select {
+    margin: 0.25rem 0;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 .search-input {

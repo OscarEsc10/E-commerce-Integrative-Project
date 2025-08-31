@@ -60,17 +60,21 @@ class LoginManager {
             const response = await apiClient.login(loginData.email, loginData.password);
 
             if (response.success) {
+                console.log('Login successful, storing auth data:', response.data);
+                
                 // Store authentication data
                 authManager.setToken(response.data.token);
                 authManager.setUserData(response.data.user);
                 
+                // Verify storage
+                console.log('Token stored:', authManager.getToken());
+                console.log('User data stored:', authManager.getUserData());
+                
                 // Show success message
                 this.showAlert('Login successful! Redirecting...', 'success');
                 
-                // Redirect based on user role
-                setTimeout(() => {
-                    this.redirectToDashboard(response.data.user.role);
-                }, 1500);
+                // Immediate redirect without delay
+                this.redirectToDashboard(response.data.user.role);
             } else {
                 this.showAlert(response.message || 'Login failed', 'error');
             }

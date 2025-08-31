@@ -65,7 +65,9 @@ export class ApiClient {
 
     // ==================== EBOOKS ====================
     async getEbooks() {
+        console.log('API: Getting ebooks...');
         const resp = await this.makeRequest('/ebooks');
+        console.log('API: Ebooks response:', resp);
         return resp.data || resp.ebooks || [];
     }
 

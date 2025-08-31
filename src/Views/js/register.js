@@ -79,14 +79,19 @@ class RegisterManager {
             const result = await response.json();
 
             if (result.success) {
-                localStorage.setItem('authToken', result.data.token);
-                localStorage.setItem('user', JSON.stringify(result.data.user));
+                console.log('Registration successful, storing auth data:', result.data);
+                
+                // Use the same keys as authManager
+                localStorage.setItem('jwt_token', result.data.token);
+                localStorage.setItem('user_data', JSON.stringify(result.data.user));
+                
+                console.log('Token stored:', localStorage.getItem('jwt_token'));
+                console.log('User data stored:', localStorage.getItem('user_data'));
                 
                 this.showAlert('Cuenta creada exitosamente. Redirigiendo...', 'success');
                 
-                setTimeout(() => {
-                    window.location.href = '/dashboard';
-                }, 1500);
+                // Immediate redirect
+                window.location.href = '/dashboard';
             } else {
                 if (result.errors && result.errors.length > 0) {
                     const errorMessages = result.errors.map(err => err.msg).join('<br>');

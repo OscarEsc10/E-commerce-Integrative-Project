@@ -17,14 +17,23 @@ class EbooksDashboard {
 
       this.user = authManager.getUserData() || {};
       this.setupNavbar();
+      this.setupFloatingCart();
       await this.loadCategories();
       await this.loadEbooks();
-      await cartManager.loadCart(); // ✅ cargar carrito desde DB
+      await cartManager.loadCart();
       this.attachStaticListeners();
       this.toggleFeaturesByRole();
+      this.setupPagination();
 
-      // ✅ refrescar carrito cuando cambie
-      window.addEventListener("cartUpdated", () => cartManager.renderCart());
+      // Listen for cart events
+      window.addEventListener("cartUpdated", () => {
+        cartManager.renderCart();
+        this.updateCartDisplay();
+      });
+      
+      window.addEventListener("cartCleared", () => {
+        this.updateCartDisplay();
+      });
     } catch (err) {
       console.error('EbooksDashboard init error:', err);
       this.showError('Error al inicializar dashboard.');
@@ -42,12 +51,11 @@ class EbooksDashboard {
     const cartSection = document.getElementById('cart-section');
 
     if (userNameEl) userNameEl.textContent = this.user.full_name || this.user.name || 'Usuario';
-    if (userRoleEl) userRoleEl.textContent = this.user.role || 'customer';
     if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${this.user.full_name || this.user.name || 'Usuario'}`;
     if (userAvatarEl) userAvatarEl.textContent = (this.user.full_name || this.user.name || 'U')[0].toUpperCase();
 
     if (logoutBtn) logoutBtn.addEventListener('click', () => authManager.logout());
-    if (backBtn) backBtn.addEventListener('click', () => window.location.href = '/dashboard.html');
+    if (backBtn) backBtn.addEventListener('click', () => window.location.href = '/dashboard');
 
     if (cartBtn && cartSection) {
       cartBtn.addEventListener('click', () => {
@@ -55,6 +63,158 @@ class EbooksDashboard {
         cartSection.classList.toggle('hidden');
       });
     }
+  }
+
+  setupFloatingCart() {
+    const cartToggle = document.getElementById('cart-toggle');
+    const cartModal = document.getElementById('cartModal');
+    const closeCart = document.getElementById('closeCart');
+    const clearCart = document.getElementById('clearCart');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    if (cartToggle && cartModal) {
+      cartToggle.addEventListener('click', () => {
+        cartModal.classList.remove('hidden');
+        this.updateCartDisplay();
+      });
+    }
+
+    if (closeCart && cartModal) {
+      closeCart.addEventListener('click', () => {
+        cartModal.classList.add('hidden');
+      });
+    }
+
+    if (clearCart) {
+      clearCart.addEventListener('click', async () => {
+        await cartManager.clearCart();
+        this.updateCartDisplay();
+      });
+    }
+
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', async () => {
+        const cartItems = cartManager.getCartItems();
+        if (cartItems.length === 0) {
+          alert('El carrito está vacío');
+          return;
+        }
+        // Redirect to checkout page with cart items
+        const itemsParam = encodeURIComponent(JSON.stringify(cartItems));
+        window.location.href = `/checkout?items=${itemsParam}`;
+      });
+    }
+
+    // Close modal when clicking outside
+    if (cartModal) {
+      cartModal.addEventListener('click', (e) => {
+        if (e.target === cartModal) {
+          cartModal.classList.add('hidden');
+        }
+      });
+    }
+  }
+
+  setupPagination() {
+    this.currentPage = 1;
+    this.itemsPerPage = 6;
+    this.totalPages = 1;
+  }
+
+  updateCartDisplay() {
+    const cartItems = cartManager.getCartItems();
+    const cartCount = document.getElementById('cart-count-badge');
+    const cartItemsContainer = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+
+    // Update cart count badge
+    if (cartCount) {
+      const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      cartCount.textContent = totalItems;
+      cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+
+    // Update cart items display
+    if (cartItemsContainer) {
+      if (cartItems.length === 0) {
+        cartItemsContainer.innerHTML = '<div class="text-center text-gray-500 py-8">Carrito vacío</div>';
+      } else {
+        cartItemsContainer.innerHTML = cartItems.map(item => `
+          <div class="py-3 flex justify-between items-center">
+            <div class="flex-1">
+              <h4 class="font-medium text-sm">${item.ebook_name || item.name || 'Ebook'}</h4>
+              <p class="text-gray-500 text-xs">Cantidad: ${item.quantity}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold">$${((item.ebook_price || item.price || 0) * item.quantity).toFixed(2)}</p>
+              <button class="remove-item-btn text-red-500 text-xs hover:text-red-700" data-ebook-id="${item.ebook_id}">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        `).join('');
+        
+        // Add event listeners for remove buttons
+        cartItemsContainer.querySelectorAll('.remove-item-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const ebookId = parseInt(e.target.dataset.ebookId);
+            await cartManager.removeItem(ebookId);
+            this.updateCartDisplay();
+          });
+        });
+      }
+    }
+
+    // Update total
+    if (cartTotal) {
+      const total = cartItems.reduce((sum, item) => sum + ((item.ebook_price || item.price || 0) * item.quantity), 0);
+      cartTotal.textContent = `$${total.toFixed(2)}`;
+    }
+  }
+
+  renderPagination() {
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) return;
+
+    let paginationHTML = '';
+
+    // Previous button
+    if (this.currentPage > 1) {
+      paginationHTML += `
+        <li><button class="px-3 py-2 bg-white border border-gray-300 rounded-l hover:bg-gray-50" onclick="dashboard.goToPage(${this.currentPage - 1})">
+          <i class="fas fa-chevron-left"></i>
+        </button></li>
+      `;
+    }
+
+    // Page numbers
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      const isActive = i === this.currentPage;
+      paginationHTML += `
+        <li><button class="px-3 py-2 border ${isActive ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white border-gray-300 hover:bg-gray-50'}" onclick="dashboard.goToPage(${i})">
+          ${i}
+        </button></li>
+      `;
+    }
+
+    // Next button
+    if (this.currentPage < this.totalPages) {
+      paginationHTML += `
+        <li><button class="px-3 py-2 bg-white border border-gray-300 rounded-r hover:bg-gray-50" onclick="dashboard.goToPage(${this.currentPage + 1})">
+          <i class="fas fa-chevron-right"></i>
+        </button></li>
+      `;
+    }
+
+    paginationContainer.innerHTML = paginationHTML;
+  }
+
+  async goToPage(page) {
+    this.currentPage = page;
+    await this.loadEbooks();
   }
 
   toggleFeaturesByRole() {
@@ -86,43 +246,100 @@ class EbooksDashboard {
     }
   }
 
-  async loadEbooks() {
+  async loadEbooks(searchTerm = '') {
     try {
-      this.ebooks = await apiClient.getEbooks();
-      this.renderEbooks(this.ebooks);
+      console.log('Loading ebooks...');
+      this.showSpinner(true);
+      
+      // Get search term and category filter
+      const searchInput = document.getElementById('search-input');
+      const categorySelect = document.getElementById('ebook-category');
+      const search = searchTerm || (searchInput ? searchInput.value.trim() : '');
+      const category = categorySelect ? categorySelect.value : '';
+      
+      // Build API URL with pagination and filters
+      let apiUrl = `http://localhost:3000/api/ebooks/paginated?page=${this.currentPage}&limit=${this.itemsPerPage}`;
+      if (search) apiUrl += `&search=${encodeURIComponent(search)}`;
+      if (category) apiUrl += `&category=${category}`;
+      
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      
+      if (data.success) {
+        this.ebooks = data.data || [];
+        this.totalPages = data.pagination?.totalPages || 1;
+        this.totalItems = data.pagination?.totalItems || this.ebooks.length;
+        console.log('Ebooks loaded:', this.ebooks.length, 'Total pages:', this.totalPages);
+        this.renderEbooks(this.ebooks);
+        this.renderPagination();
+        this.updateCartDisplay();
+        this.updateEbooksCount();
+      } else {
+        throw new Error(data.message || 'Failed to load ebooks');
+      }
     } catch (err) {
       console.error('Error cargando ebooks:', err);
-      this.showError('No se pudieron cargar los ebooks.');
+      this.showError('No se pudieron cargar los ebooks: ' + err.message);
     } finally {
       this.showSpinner(false);
     }
   }
 
   renderEbooks(ebooks) {
+    console.log('Rendering ebooks:', ebooks.length);
     const container = document.getElementById('ebooksContainer');
-    if (!container) return;
+    if (!container) {
+      console.error('ebooksContainer not found');
+      return;
+    }
     container.innerHTML = '';
+
+    if (ebooks.length === 0) {
+      container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay ebooks disponibles</div>';
+      return;
+    }
 
     ebooks.forEach(ebook => {
       const price = parseFloat(ebook.price) || 0;
       const card = document.createElement('div');
-      card.className = 'bg-white shadow-lg rounded-xl p-4 flex flex-col justify-between';
+      card.className = 'bg-white shadow-lg rounded-xl p-4 flex flex-col justify-between hover:shadow-xl transition-shadow';
       card.innerHTML = `
-        <h4 class="font-semibold text-lg mb-2">${ebook.name}</h4>
-        <p class="text-gray-600 text-sm mb-4">${ebook.description || ''}</p>
-        <span class="font-bold text-indigo-600 mb-2">${price > 0 ? `$${price.toFixed(2)}` : 'Gratis'}</span>
-        <button class="add-to-cart-btn bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors" data-id="${ebook.ebook_id}">
-          Agregar al carrito
-        </button>
+        <div>
+          <h4 class="font-semibold text-lg mb-2">${ebook.name}</h4>
+          <p class="text-gray-600 text-sm mb-4">${ebook.description || ''}</p>
+          <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-2">
+            ${ebook.category_name || 'Sin categoría'}
+          </span>
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-indigo-600 text-lg">${price > 0 ? `$${price.toFixed(2)}` : 'Gratis'}</span>
+          </div>
+          <button class="add-to-cart-btn w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors" data-id="${ebook.ebook_id}">
+            <i class="fas fa-cart-plus mr-2"></i>Agregar al carrito
+          </button>
+        </div>
       `;
       container.appendChild(card);
     });
 
-    // ✅ Eventos de agregar al carrito
+    // Eventos de agregar al carrito
     container.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         const ebookId = parseInt(e.currentTarget.dataset.id);
-        await cartManager.addItem(ebookId, 1);
+        const ebook = this.ebooks.find(eb => eb.ebook_id === ebookId);
+        
+        // Add to cart with ebook details for fallback
+        await cartManager.addItem(ebookId, 1, ebook);
+        this.updateCartDisplay();
+        
+        // Visual feedback
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i>Agregado';
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Agregar al carrito';
+          btn.disabled = false;
+        }, 2000);
       });
     });
   }
@@ -154,7 +371,11 @@ class EbooksDashboard {
 
   updateEbooksCount() {
     const countEl = document.getElementById('ebooks-count');
-    if (countEl) countEl.textContent = `${this.ebooks.length} items`;
+    if (countEl) {
+      const start = (this.currentPage - 1) * this.itemsPerPage + 1;
+      const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems || this.ebooks.length);
+      countEl.textContent = `Mostrando ${start}-${end} de ${this.totalItems || this.ebooks.length} ebooks`;
+    }
   }
 
   showSpinner(show) {
@@ -189,10 +410,18 @@ class EbooksDashboard {
   attachStaticListeners() {
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
-      searchInput.addEventListener('input', e => {
-        const term = e.target.value.toLowerCase();
-        const filtered = this.ebooks.filter(eb => eb.name.toLowerCase().includes(term));
-        this.renderFilteredEbooks(filtered);
+      searchInput.addEventListener('input', async (e) => {
+        const term = e.target.value.trim();
+        this.currentPage = 1; // Reset to first page when searching
+        await this.loadEbooks(term);
+      });
+    }
+
+    const categorySelect = document.getElementById('ebook-category');
+    if (categorySelect) {
+      categorySelect.addEventListener('change', async (e) => {
+        this.currentPage = 1; // Reset to first page when filtering
+        await this.loadEbooks();
       });
     }
 
@@ -273,6 +502,64 @@ class EbooksDashboard {
         modal.classList.add('hidden');
       }
     }, {once:true});
+  }
+
+  async processCheckout(cartItems) {
+    try {
+      // Calculate total
+      const total = cartItems.reduce((sum, item) => 
+        sum + ((item.ebook_price || item.price || 0) * item.quantity), 0);
+
+      // Show confirmation dialog
+      const confirmed = confirm(`¿Confirmar compra por $${total.toFixed(2)}?`);
+      if (!confirmed) return;
+
+      // Show loading
+      this.showSpinner(true);
+
+      // Create order
+      const orderData = {
+        items: cartItems.map(item => ({
+          ebook_id: item.ebook_id,
+          quantity: item.quantity,
+          price: item.ebook_price || item.price || 0
+        })),
+        total: total,
+        payment_method: 'credit_card' // Default payment method
+      };
+
+      const response = await apiClient.makeRequest('/orders', {
+        method: 'POST',
+        body: JSON.stringify(orderData)
+      });
+
+      if (response.success) {
+        // Clear cart after successful order
+        await cartManager.clearCart();
+        this.updateCartDisplay();
+        
+        // Close cart modal
+        const cartModal = document.getElementById('cartModal');
+        if (cartModal) cartModal.classList.add('hidden');
+        
+        // Show success message
+        this.showSuccess(`¡Compra realizada exitosamente! Orden #${response.order?.order_id || 'N/A'}`);
+        
+        // Optional: Redirect to orders page
+        setTimeout(() => {
+          if (confirm('¿Deseas ver tus órdenes?')) {
+            window.location.href = '/orders';
+          }
+        }, 2000);
+      } else {
+        throw new Error(response.message || 'Error al procesar la orden');
+      }
+    } catch (err) {
+      console.error('Error en checkout:', err);
+      this.showError('Error al procesar el pago: ' + err.message);
+    } finally {
+      this.showSpinner(false);
+    }
   }
 }
 

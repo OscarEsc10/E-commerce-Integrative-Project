@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - E-commerce Ebooks</title>
+  <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script type="module" src="/src/Views/js/checkout.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div class="flex items-center space-x-4">
+      <h1 class="text-xl font-bold text-indigo-600">E-commerce Ebooks</h1>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button id="btn-back" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Volver</button>
+    </div>
+  </nav>
+
+  <!-- CHECKOUT CONTAINER -->
+  <div class="container mx-auto mt-8 px-4 max-w-4xl">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- ORDER SUMMARY -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Resumen de la Orden</h2>
+        <div id="orderItems" class="space-y-3 mb-4">
+          <!-- Order items will be populated here -->
+        </div>
+        <div class="border-t pt-4">
+          <div class="flex justify-between items-center text-lg font-semibold">
+            <span>Total:</span>
+            <span id="orderTotal">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT FORM -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Información de Pago</h2>
+        <form id="checkoutForm" class="space-y-4">
+          
+          <!-- Payment Method -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+            <select id="paymentMethod" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+              <option value="credit_card">Tarjeta de Crédito</option>
+              <option value="debit_card">Tarjeta de Débito</option>
+              <option value="paypal">PayPal</option>
+            </select>
+          </div>
+
+          <!-- Card Information -->
+          <div id="cardInfo">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Número de Tarjeta</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" 
+                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                     maxlength="19" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Expiración</label>
+                <input type="text" id="expiryDate" placeholder="MM/YY" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                       maxlength="5" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                <input type="text" id="cvv" placeholder="123" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" 
+                       maxlength="4" required>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre en la Tarjeta</label>
+              <input type="text" id="cardName" placeholder="Juan Pérez" 
+                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+            </div>
+          </div>
+
+          <!-- Billing Address -->
+          <div class="border-t pt-4 mt-6">
+            <h3 class="text-lg font-medium mb-3">Dirección de Facturación</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                <input type="text" id="address" placeholder="Calle 123 #45-67" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Ciudad</label>
+                  <input type="text" id="city" placeholder="Bogotá" 
+                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Código Postal</label>
+                  <input type="text" id="zipCode" placeholder="110111" 
+                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-6">
+            <button type="submit" id="submitPayment" 
+                    class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
+              <i class="fas fa-credit-card mr-2"></i>
+              Procesar Pago
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <span class="text-lg">Procesando pago...</span>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,8 +1,6 @@
-import { authManager } from './auth.js';
-import { apiClient } from './api.js';
-import { renderManageSellers } from '../admin/js/admin-seller-request.js';
-import { renderManageUsers } from '../admin/js/admin-users.js';
-import { cartManager } from './CartManager.js';
+import { authManager } from '/src/Views/js/auth.js';
+import { apiClient } from '/src/Views/js/api.js';
+import { cartManager } from '/src/Views/js/CartManager.js';
 
 const ROLE_MAP = { 1: 'admin', 2: 'seller', 3: 'customer' };
 
@@ -14,9 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
    Inicialización
    ------------------------ */
 async function initDashboard() {
-  // Exponer authManager globalmente (HTML usa onclick="authManager.logout()")
-  window.authManager = authManager;
-
+  console.log('Dashboard initializing...');
+  
   // Forzar auth / redirect si no está autenticado
   if (!authManager.requireAuth()) return;
 
@@ -34,6 +31,8 @@ async function initDashboard() {
 
   // Conectar eventos
   attachEventListeners(user);
+  setupCartFunctionality();
+  setupEbooksSection();
 
   // Cargar carrito inicialmente (badge + lista)  
   await cartManager.loadCart();
@@ -57,10 +56,20 @@ function updateNavbarUser(user) {
   const userNameEl = document.getElementById('userName');
   const userAvatarEl = document.getElementById('userAvatar');
   const welcomeEl = document.getElementById('welcomeMessage');
+  const logoutBtn = document.getElementById('logout-btn');
+  const cartBtn = document.getElementById('btn-cart');
 
-  if (userNameEl) userNameEl.textContent = user.name || user.full_name || 'Usuario';
-  if (userAvatarEl) userAvatarEl.textContent = (user.name || user.full_name || 'U').charAt(0).toUpperCase();
-  if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${user.name || user.full_name || 'Usuario'}`;
+  if (userNameEl) userNameEl.textContent = user.full_name || user.name || 'Usuario';
+  if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${user.full_name || user.name || 'Usuario'}`;
+  if (userAvatarEl) userAvatarEl.textContent = (user.full_name || user.name || 'U')[0].toUpperCase();
+
+  if (logoutBtn) logoutBtn.addEventListener('click', () => authManager.logout());
+  
+  // Setup cart button
+  if (cartBtn) {
+    cartBtn.classList.remove('hidden');
+    cartBtn.addEventListener('click', () => showSection('cart'));
+  }
 }
 
 function getRoleFromUser(user) {
@@ -148,14 +157,13 @@ function attachEventListeners(user) {
   });
 
   on('btn-manage-users', async () => {
-    // muestra la sección y carga la UI de gestión de usuarios
-    document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
-    await renderManageUsers();
+    loadSection('users-section');
+    renderUsers();
   });
 
   on('btn-manage-sellers', () => {
     loadSection('sellers-section');
-    renderManageSellers();
+    renderSellers();
   });
 
   // Convertirme en vendedor (abre formulario en dashboard)
@@ -206,13 +214,38 @@ function attachEventListeners(user) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Logout (por si hay distinto id en HTML)
-  const logoutEl = document.querySelector('button[onclick="authManager.logout()"]') || document.getElementById('logoutBtn') || document.getElementById('btnLogout');
+  // Logout functionality - debug version
+  console.log('Setting up logout functionality...');
+  const logoutEl = document.getElementById('logout-btn');
+  console.log('Logout button found:', logoutEl);
+  
   if (logoutEl) {
-    logoutEl.addEventListener('click', (e) => {
+    // Remove any existing listeners
+    logoutEl.replaceWith(logoutEl.cloneNode(true));
+    const newLogoutEl = document.getElementById('logout-btn');
+    
+    newLogoutEl.addEventListener('click', function(e) {
+      console.log('=== LOGOUT CLICKED ===');
       e.preventDefault();
-      authManager.logout();
+      e.stopPropagation();
+      
+      // Immediate logout
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      console.log('Storage cleared, redirecting...');
+      
+      // Multiple redirect attempts
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
+      
+      window.location.replace('/login');
     });
+    
+    console.log('Logout event listener attached successfully');
+  } else {
+    console.error('CRITICAL: Logout button not found!');
   }
 }
 
@@ -223,6 +256,123 @@ function loadSection(sectionId) {
   document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
   const el = document.getElementById(sectionId);
   if (el) el.classList.remove('hidden');
+}
+
+function showSection(sectionId) {
+  loadSection(sectionId);
+}
+
+
+/* ------------------------
+   Cart Functionality
+   ------------------------ */
+function setupCartFunctionality() {
+  // Setup cart modal functionality
+  const cartModal = document.getElementById('cart-modal');
+  const closeCartBtn = document.getElementById('close-cart-modal');
+  const clearCartBtn = document.getElementById('clear-cart-btn');
+  const checkoutBtn = document.getElementById('checkout-btn');
+
+  // Close modal
+  if (closeCartBtn) {
+    closeCartBtn.addEventListener('click', () => {
+      if (cartModal) cartModal.classList.add('hidden');
+    });
+  }
+
+  // Clear cart
+  if (clearCartBtn) {
+    clearCartBtn.addEventListener('click', async () => {
+      if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+        try {
+          await cartManager.clearCart();
+          showTempSuccess('Carrito vaciado');
+        } catch (err) {
+          console.error('Error clearing cart:', err);
+          showTempError('Error al vaciar el carrito');
+        }
+      }
+    });
+  }
+
+  // Checkout
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+      window.location.href = '/checkout';
+    });
+  }
+
+  // Listen for cart updates
+  document.addEventListener('cartUpdated', () => {
+    updateCartDisplay();
+  });
+
+  document.addEventListener('cartCleared', () => {
+    updateCartDisplay();
+  });
+}
+
+async function updateCartDisplay() {
+  try {
+    const cartItems = await cartManager.getCartItems();
+    const cartList = document.getElementById('cart-list');
+    const cartTotal = document.getElementById('cart-total');
+    const cartModal = document.getElementById('cart-modal');
+    
+    if (cartList) {
+      if (!cartItems || cartItems.length === 0) {
+        cartList.innerHTML = '<div class="text-center py-8 text-gray-500">Tu carrito está vacío</div>';
+      } else {
+        cartList.innerHTML = cartItems.map(item => {
+          const price = Number(item.price || item.ebook_price || 0);
+          const quantity = Number(item.quantity || 1);
+          const subtotal = price * quantity;
+          
+          return `
+            <div class="flex items-center justify-between p-4 border-b border-gray-200" data-item-id="${item.ebook_id || item.id}">
+              <div class="flex-1">
+                <h4 class="font-semibold text-gray-800">${escapeHtml(item.name || item.title || 'Sin título')}</h4>
+                <p class="text-sm text-gray-600">$${price.toFixed(2)} x ${quantity}</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="font-semibold text-gray-800">$${subtotal.toFixed(2)}</span>
+                <button class="remove-item-btn text-red-500 hover:text-red-700 p-1" data-item-id="${item.ebook_id || item.id}">
+                  <i class="fas fa-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        // Add event listeners for remove buttons
+        cartList.querySelectorAll('.remove-item-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const itemId = e.currentTarget.dataset.itemId;
+            try {
+              await cartManager.removeItem(itemId);
+              showTempSuccess('Producto eliminado del carrito');
+            } catch (err) {
+              console.error('Error removing item:', err);
+              showTempError('Error al eliminar producto');
+            }
+          });
+        });
+      }
+    }
+    
+    if (cartTotal && cartItems && cartItems.length > 0) {
+      const total = cartItems.reduce((sum, item) => {
+        const price = Number(item.price || item.ebook_price || 0);
+        const quantity = Number(item.quantity || 1);
+        return sum + (price * quantity);
+      }, 0);
+      cartTotal.textContent = `$${total.toFixed(2)}`;
+    } else if (cartTotal) {
+      cartTotal.textContent = '$0.00';
+    }
+  } catch (err) {
+    console.error('Error updating cart display:', err);
+  }
 }
 
 /* ------------------------
@@ -305,27 +455,55 @@ function renderEbooksInDashboard(ebooks) {
   if (!container) return;
   container.innerHTML = '';
 
+  // Update count display
+  const countEl = document.getElementById('ebooks-count');
+  if (countEl) {
+    countEl.textContent = `${ebooks?.length || 0} libros`;
+  }
+
   if (!ebooks || ebooks.length === 0) {
-    container.innerHTML = `<p class="text-gray-600">No hay ebooks para mostrar.</p>`;
+    container.innerHTML = `
+      <div class="col-span-full text-center py-16">
+        <i class="fas fa-book text-6xl text-gray-300 mb-4"></i>
+        <p class="text-xl text-gray-500 mb-2">No hay ebooks disponibles</p>
+        <p class="text-gray-400">Los libros aparecerán aquí cuando estén disponibles</p>
+      </div>
+    `;
     return;
   }
 
   ebooks.forEach(ebook => {
     const id = ebook.ebook_id ?? ebook.id ?? ebook.ebookId ?? ebook.book_id;
     const priceNum = Number(ebook.price ?? ebook.price_usd ?? 0) || 0;
+    const category = ebook.category_name || ebook.category || 'Sin categoría';
     const card = document.createElement('div');
-    card.className = 'bg-white rounded-xl shadow-md p-4 flex flex-col justify-between';
+    card.className = 'bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-indigo-200 group';
     card.innerHTML = `
-      <div>
-        <h4 class="font-semibold text-lg mb-2">${escapeHtml(ebook.name ?? ebook.title ?? 'Sin título')}</h4>
-        <p class="text-gray-600 text-sm mb-3">${escapeHtml(ebook.description ?? '')}</p>
-      </div>
-      <div class="mt-3 flex items-center justify-between">
-        <div class="text-indigo-600 font-bold">$${priceNum.toFixed(2)}</div>
-        <div class="flex items-center space-x-2">
-          ${getRoleFromUser(authManager.getUserData() || {}) === 'customer' ? `<button class="add-cart-btn bg-indigo-500 text-white py-1 px-3 rounded-lg text-sm" data-id="${id}" data-name="${escapeHtml(ebook.name ?? ebook.title ?? '')}" data-price="${priceNum.toFixed(2)}">Agregar al carrito</button>` : ''}
-          ${['admin','seller'].includes(getRoleFromUser(authManager.getUserData() || {})) ? `<button class="edit-ebook-btn bg-green-500 text-white py-1 px-3 rounded-lg text-sm" data-id="${id}">Editar</button>
-          <button class="delete-ebook-btn bg-red-500 text-white py-1 px-3 rounded-lg text-sm" data-id="${id}">Eliminar</button>` : ''}
+      <div class="flex flex-col h-full">
+        <div class="flex-1">
+          <div class="flex items-start justify-between mb-3">
+            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 text-xs font-semibold rounded-full">${escapeHtml(category)}</span>
+            <div class="text-2xl font-bold text-indigo-600">$${priceNum.toFixed(2)}</div>
+          </div>
+          <h4 class="font-bold text-xl mb-3 text-gray-800 group-hover:text-indigo-600 transition-colors line-clamp-2">${escapeHtml(ebook.name ?? ebook.title ?? 'Sin título')}</h4>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">${escapeHtml(ebook.description ?? 'Sin descripción disponible')}</p>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+          ${getRoleFromUser(authManager.getUserData() || {}) === 'customer' ? `
+            <button class="add-cart-btn bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center group-hover:scale-105" data-id="${id}" data-name="${escapeHtml(ebook.name ?? ebook.title ?? '')}" data-price="${priceNum.toFixed(2)}">
+              <i class="fas fa-cart-plus mr-2"></i>Agregar al carrito
+            </button>
+          ` : ''}
+          ${['admin','seller'].includes(getRoleFromUser(authManager.getUserData() || {})) ? `
+            <div class="flex space-x-2">
+              <button class="edit-ebook-btn bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded-lg text-sm transition-all duration-200" data-id="${id}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="delete-ebook-btn bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg text-sm transition-all duration-200" data-id="${id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -577,6 +755,10 @@ function renderUsers() {
   const el = document.getElementById('users-section');
   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Usuarios</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
 }
+function renderSellers() {
+  const el = document.getElementById('sellers-section');
+  if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Vendedores</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
+}
 function renderOrders() {
   const el = document.getElementById('orders-section');
   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Pedidos</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
@@ -632,11 +814,39 @@ function showTempError(msg) {
   try { console.error(msg); } catch(e) { alert(msg); }
 }
 
+/* ------------------------
+   Ebooks Section Setup
+   ------------------------ */
+function setupEbooksSection() {
+  const refreshBtn = document.getElementById('refresh-ebooks');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Actualizando...';
+      refreshBtn.disabled = true;
+      
+      try {
+        await loadEbooksSection();
+        showTempSuccess('Ebooks actualizados');
+      } catch (err) {
+        console.error('Error refreshing ebooks:', err);
+        showTempError('Error al actualizar ebooks');
+      } finally {
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Actualizar';
+        refreshBtn.disabled = false;
+      }
+    });
+  }
+}
+
 export {
   loadEbooksSection,
   renderEbooksInDashboard,
   loadCart,
   addToCart,
   loadUserRequests,
-  renderBecomeSellerSection
+  renderBecomeSellerSection,
+  setupCartFunctionality,
+  setupEbooksSection,
+  showSection,
+  updateCartDisplay
 };
