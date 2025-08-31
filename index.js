@@ -21,7 +21,7 @@ import adressRoutes from './src/Routes/addressRoutes.js'
 import PaymentsRoutes from './src/Routes/PaymentsRoutes.js';
 import invoicesRoutes from './src/Routes/InvoiceRoutes.js';
 import viewRoutes from "./src/Routes/viewRoutes.js";
-
+import ReportRoutes from "./src/Routes/ReportRoutes.js"
 // ES module dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,6 +45,7 @@ app.use('/api/orders', OrdersRoutes);
 app.use("/api/addresses", adressRoutes);
 app.use('/api/payments', PaymentsRoutes);
 app.use('/api/invoices', invoicesRoutes);
+app.use('/api/reports', ReportRoutes);
 
 // View Routes (clean URLs)
 app.use("/", viewRoutes);

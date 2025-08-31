@@ -1,7 +1,13 @@
 import { authManager } from '/src/Views/js/auth.js';
 import { apiClient } from '/src/Views/js/api.js';
 import { cartManager } from '/src/Views/js/CartManager.js';
-
+import { renderManageUsers } from './admin-users.js';
+import { renderManageSellers } from './admin-seller-request.js';
+import { renderAdminOrders } from './admin-order.js';
+import { renderAdminReports } from './admin-reports.js';
+import { renderAdminEbooks } from './admin-ebooks.js';
+import { renderSellerSalesSummary } from './seller-sales.js';
+import { renderSellerOrders } from './seller-orders.js';
 const ROLE_MAP = { 1: 'admin', 2: 'seller', 3: 'customer' };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -113,6 +119,7 @@ function setupUIForRole(user) {
   }
 
   if (role === 'seller') {
+    show('btn-view-catalog');
     show('btn-manage-ebooks');
     show('btn-manage-orders');
     show('btn-sales-summary');
@@ -137,33 +144,36 @@ function attachEventListeners(user) {
   };
 
   // Navegación / secciones
-  on('btn-view-catalog', () => window.location.href = 'ebooks-dashboard.html'); // página separada
-  on('btn-manage-ebooks', () => window.location.href = 'ebooks-dashboard.html'); // admins/sellers van a la vista de ebooks dedicada
+  on('btn-view-catalog', async () => window.location.href = 'ebooks-dashboard.html'); // página separada
+  
+  on('btn-manage-ebooks', async() => {
+    loadSection('ebooks-section');
+    await renderAdminEbooks();
+  }); // admins/sellers van a la vista de ebooks dedicada
 
-  on('btn-manage-orders', () => {
+  on('btn-manage-orders-admin', async () => {
     loadSection('orders-section');
-    renderOrders();
+    await renderAdminOrders();
   });
 
-  on('btn-sales-summary', () => {
+  on('btn-sales-summary', async () => {
     loadSection('sales-summary-section');
-    const el = document.getElementById('sales-summary-content');
-    if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Resumen de Ventas</h3><p class="text-gray-600">Función en desarrollo 🚧</p>`;
+    await renderSellerSalesSummary();
   });
 
-  on('btn-reports', () => {
+  on('btn-reports', async () => {
     loadSection('reports-section');
-    renderReports();
+    await renderAdminReports();
   });
 
   on('btn-manage-users', async () => {
-    loadSection('users-section');
-    renderUsers();
+  loadSection('users-section');
+  await renderManageUsers();
   });
 
-  on('btn-manage-sellers', () => {
+  on('btn-manage-sellers', async () => {
     loadSection('sellers-section');
-    renderSellers();
+    await renderManageSellers();
   });
 
   // Convertirme en vendedor (abre formulario en dashboard)
@@ -751,22 +761,22 @@ function requestStatusClass(sid) {
 /* ------------------------
    Placeholder renderers
    ------------------------ */
-function renderUsers() {
-  const el = document.getElementById('users-section');
-  if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Usuarios</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
-}
-function renderSellers() {
-  const el = document.getElementById('sellers-section');
-  if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Vendedores</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
-}
-function renderOrders() {
-  const el = document.getElementById('orders-section');
-  if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Pedidos</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
-}
-function renderReports() {
-  const el = document.getElementById('reports-section');
-  if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Reportes</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
-}
+// function renderManageUsers() {
+//   const el = document.getElementById('users-section');
+//   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Usuarios</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
+// }
+// function renderManageSellers() {
+//   const el = document.getElementById('sellers-section');
+//   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Vendedores</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
+// }
+// function renderAdminOrders() {
+//   const el = document.getElementById('orders-section');
+//   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Gestionar Pedidos</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
+// }
+// function renderAdminReports() {
+//   const el = document.getElementById('reports-section');
+//   if (el) el.innerHTML = `<h3 class="text-xl font-bold mb-2">Reportes</h3><p class="text-gray-600">Funcionalidad en desarrollo.</p>`;
+// }
 
 /* ------------------------
    Footer / stats

@@ -113,6 +113,23 @@ router.delete('/:id', authenticateToken, requireRole(['admin', 'seller']), async
   }
 });
 
+// backend - ebooks.routes.js
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ebook = await pool.query(
+      "SELECT * FROM ebooks WHERE ebook_id = $1",
+      [id]
+    );
+    if (ebook.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Ebook no encontrado" });
+    }
+    res.json({ success: true, ebook: ebook.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error al obtener ebook" });
+  }
+});
+
 // Public pagination routes (no authentication required for catalog viewing)
 router.get('/paginated', EbookController.getPaginated);
 router.get('/search', EbookController.search);

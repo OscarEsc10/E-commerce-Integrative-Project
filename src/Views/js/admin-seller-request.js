@@ -1,4 +1,4 @@
-import { apiClient } from "../../js/api.js";
+import { apiClient } from "./api.js";
 
 const tbody = document.getElementById("seller-requests-tbody");
 

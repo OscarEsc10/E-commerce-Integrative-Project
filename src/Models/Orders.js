@@ -81,4 +81,42 @@ export class Order {
     const { rows } = await pool.query(query, [status, order_id]);
     return rows[0];
   }
+
+  //listar todos los pedidos para visualizar informacion en el modulo orders-management de admins
+
+  // Obtener todas las órdenes (para admin)
+   static async findAll() {
+    const query = `
+      SELECT * FROM orders
+      ORDER BY created_at DESC
+    `;
+    const { rows } = await pool.query(query);
+    return rows;
+  }
+
+  // sellers
+  static async updateStatus(order_id, status_id) {
+    const query = `
+      UPDATE orders
+      SET status_id = $1
+      WHERE order_id = $2
+      RETURNING *
+    `;
+      const { rows } = await pool.query(query, [status_id, order_id]);
+      return rows[0];
+    }
+
+    static async findBySellerId(sellerId) {
+  const { rows } = await pool.query(`
+    SELECT o.*, b.title AS ebook_name, b.creator_id
+    FROM orders o
+    JOIN order_items oi ON o.id = oi.order_id
+    JOIN ebooks b ON oi.product_id = b.id
+    WHERE b.creator_id = $1
+    ORDER BY o.created_at DESC
+  `, [sellerId]);
+
+    return rows;
+  }
+
 }

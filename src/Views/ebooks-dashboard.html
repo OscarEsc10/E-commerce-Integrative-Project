@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Dashboard Ebooks</title>
   <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
-  <script type="module" src="/src/Views/js/ebooks-dashboard.js" defer></script>
+  <script type="module" src="/src/Views/js/ebook-dashboard.js" defer></script>
   <script src="/src/Views/js/modern-pagination.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -34,7 +34,6 @@
     </div>
     <div class="flex items-center space-x-4">
       <button id="btn-back-dashboard" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Dashboard</button>
-      <button id="btn-cart" class="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600">Carrito (<span id="cart-count">0</span>)</button>
       <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cerrar sesión</button>
     </div>
   </nav>
@@ -65,16 +64,6 @@
       <div id="ebooks-count" class="text-gray-700 font-medium"></div>
 
     </div>
-
-    <!-- Carrito -->
-    <div class="w-64 bg-white p-4 rounded shadow hidden md:block" id="cart-section">
-      <h2 class="font-bold mb-2">Carrito</h2>
-      <div id="cart-content" class="space-y-2">
-        <p class="text-gray-600">Carrito vacío</p>
-      </div>
-    </div>
-
-  </div>
 
   <!-- CONTENEDOR DE EBOOKS -->
   <div id="ebooksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"></div>

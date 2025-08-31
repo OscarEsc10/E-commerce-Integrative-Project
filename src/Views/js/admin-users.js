@@ -1,5 +1,5 @@
 // admin/js/admin-users.js
-import { apiClient } from '../../js/api.js'; // <-- ruta relativa desde admin/js -> public/js/api.js
+import { apiClient } from './api.js'; // <-- ruta relativa desde admin/js -> public/js/api.js
 
 export async function renderManageUsers() {
   const section = document.getElementById('users-section');
