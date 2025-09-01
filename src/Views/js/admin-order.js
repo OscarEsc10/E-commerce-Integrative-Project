@@ -1,6 +1,12 @@
-// src/Views/admin/js/admin-orders.js
+// src/Views/js/admin-order.js
+// Admin interface for managing orders: list, update status, and view details
+
 import { apiClient } from './api.js';
 
+/**
+ * Render the admin orders management section
+ * Displays a table of orders and allows status updates and viewing details
+ */
 export async function renderAdminOrders() {
   const section = document.getElementById('orders-section');
   if (!section) return;
@@ -79,7 +85,11 @@ export async function renderAdminOrders() {
   }
 }
 
-// 🔹 Mapear estados
+/**
+ * Build the status select dropdown for an order
+ * @param {number} current - Current status ID
+ * @returns {string} HTML for select element
+ */
 function buildStatusOptions(current) {
   const statuses = [
     { id: 1, name: 'PENDING' },
@@ -97,7 +107,10 @@ function buildStatusOptions(current) {
   `;
 }
 
-// 🔹 Mostrar detalle de pedido
+/**
+ * Show order details in an alert (can be improved with a modal)
+ * @param {number} orderId - Order ID to show details for
+ */
 async function showOrderDetail(orderId) {
   try {
     const resp = await apiClient.makeRequest(`/orders/${orderId}`, { method: 'GET' });

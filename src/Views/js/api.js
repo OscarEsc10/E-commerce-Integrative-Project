@@ -1,3 +1,6 @@
+// API client for making HTTP requests to the backend
+// Includes methods for authentication, ebooks, categories, seller requests, and utility functions
+
 import { authManager } from "./auth.js";
 
 /**
@@ -11,6 +14,12 @@ export class ApiClient {
         };
     }
 
+    /**
+     * Make a generic HTTP request to the backend
+     * @param {string} endpoint - API endpoint
+     * @param {Object} options - Fetch options
+     * @returns {Promise<Object>} Response data
+     */
     async makeRequest(endpoint, options = {}) {
         try {
             const url = `${this.baseURL}${endpoint}`;
@@ -38,6 +47,9 @@ export class ApiClient {
     }
 
     // ==================== AUTH ====================
+    /**
+     * Login with email and password
+     */
     async login(email, password) {
         return this.makeRequest('/auth/login', {
             method: 'POST',
@@ -45,6 +57,9 @@ export class ApiClient {
         });
     }
 
+    /**
+     * Register a new user
+     */
     async register(userData) {
         return this.makeRequest('/auth/register', {
             method: 'POST',
@@ -52,10 +67,16 @@ export class ApiClient {
         });
     }
 
+    /**
+     * Get current user profile
+     */
     async getProfile() {
         return this.makeRequest('/auth/profile');
     }
 
+    /**
+     * Update user profile
+     */
     async updateProfile(profileData) {
         return this.makeRequest('/auth/profile', {
             method: 'PUT',
@@ -64,6 +85,9 @@ export class ApiClient {
     }
 
     // ==================== EBOOKS ====================
+    /**
+     * Get all ebooks
+     */
     async getEbooks() {
         console.log('API: Getting ebooks...');
         const resp = await this.makeRequest('/ebooks');
@@ -71,11 +95,17 @@ export class ApiClient {
         return resp.data || resp.ebooks || [];
     }
 
+    /**
+     * Get ebook by ID
+     */
     async getEbook(ebookId) {
         const resp = await this.makeRequest(`/ebooks/${ebookId}`);
         return resp.data || resp.ebook;
     }
 
+    /**
+     * Search ebooks by query
+     */
     async searchEbooks(query) {
         const ebooks = await this.getEbooks();
         if (!query) return ebooks;
@@ -84,11 +114,17 @@ export class ApiClient {
         (e.description && e.description.toLowerCase().includes(term)));
     }
 
+    /**
+     * Get ebooks by category
+     */
     async getEbooksByCategory(categoryId) {
         const ebooks = await this.getEbooks();
         return ebooks.filter(e => e.category_id === categoryId);
     }
 
+    /**
+     * Create a new ebook
+     */
     async createEbook(data) {
         const resp = await this.makeRequest('/ebooks', {
             method: 'POST',
@@ -97,6 +133,9 @@ export class ApiClient {
         return resp.ebook;
     }
 
+    /**
+     * Update an ebook by ID
+     */
     async updateEbook(id, data) {
         const resp = await this.makeRequest(`/ebooks/${id}`, {
             method: 'PUT',
@@ -105,16 +144,25 @@ export class ApiClient {
         return resp.ebook;
     }
 
+    /**
+     * Delete an ebook by ID
+     */
     async deleteEbook(id) {
         return this.makeRequest(`/ebooks/${id}`, { method: 'DELETE' });
     }
 
     // ==================== CATEGORIES ====================
+    /**
+     * Get all categories
+     */
     async getCategories() {
         const resp = await this.makeRequest('/categories');
         return resp.data || resp.categories || [];
     }
 
+    /**
+     * Create a new category
+     */
     async createCategory(data) {
         const resp = await this.makeRequest('/categories', {
             method: 'POST',
@@ -123,6 +171,9 @@ export class ApiClient {
         return resp.category;
     }
 
+    /**
+     * Update a category by ID
+     */
     async updateCategory(id, data) {
         const resp = await this.makeRequest(`/categories/${id}`, {
             method: 'PUT',
@@ -131,6 +182,9 @@ export class ApiClient {
         return resp.category;
     }
 
+    /**
+     * Delete a category by ID
+     */
     async deleteCategory(id) {
         return this.makeRequest(`/categories/${id}`, { method: 'DELETE' });
     }
@@ -171,6 +225,9 @@ export class ApiClient {
         return ebooks.filter(ebook => ebook.category_id === categoryId);
     }
 
+    /**
+     * Create a seller request
+     */
     async createSellerRequest(data) {
     const response = await this.makeRequest('/seller-requests', {
     method: 'POST',
@@ -179,13 +236,17 @@ export class ApiClient {
     return response.data || response.request || response;
     }
 
-    // Obtener todas las solicitudes (para admin)
+    /**
+     * Get all seller requests (admin)
+     */
     async getSellerRequests() {
     const response = await this.makeRequest('/seller-requests');
     return response.data || response.sellerRequests || [];
     }
 
-    // Actualizar estado de solicitud (aprobar/rechazar)
+    /**
+     * Update seller request status (approve/reject)
+     */
     async updateSellerRequestStatus(request_id, sr_status_id) {
     const response = await this.makeRequest(`/    seller-requests/${request_id}`, {
         method: 'PUT',

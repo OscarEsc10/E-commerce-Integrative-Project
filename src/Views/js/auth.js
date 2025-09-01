@@ -1,6 +1,6 @@
 /**
  * Authentication utilities for managing JWT tokens and user sessions
- * Handles token storage, validation, and user authentication state
+ * Handles token storage, validation, user authentication state, and UI updates
  */
 
 class AuthManager {
@@ -9,23 +9,43 @@ class AuthManager {
         this.userKey = 'user_data';
     }
 
+    /**
+     * Store JWT token in localStorage
+     * @param {string} token
+     */
     setToken(token) {
         localStorage.setItem(this.tokenKey, token);
     }
 
+    /**
+     * Retrieve JWT token from localStorage
+     * @returns {string|null}
+     */
     getToken() {
         return localStorage.getItem(this.tokenKey);
     }
 
+    /**
+     * Store user data in localStorage
+     * @param {Object} userData
+     */
     setUserData(userData) {
         localStorage.setItem(this.userKey, JSON.stringify(userData));
     }
 
+    /**
+     * Retrieve user data from localStorage
+     * @returns {Object|null}
+     */
     getUserData() {
         const userData = localStorage.getItem(this.userKey);
         return userData ? JSON.parse(userData) : null;
     }
 
+    /**
+     * Check if user is authenticated (token exists and is valid)
+     * @returns {boolean}
+     */
     isAuthenticated() {
         const token = this.getToken();
         console.log('Checking token:', token ? 'exists' : 'missing');
@@ -46,11 +66,18 @@ class AuthManager {
         }
     }
 
+    /**
+     * Get authorization headers for API requests
+     * @returns {Object}
+     */
     getAuthHeaders() {
         const token = this.getToken();
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
+    /**
+     * Logout user and clear localStorage, then redirect to login
+     */
     logout() {
         console.log('Logout called - clearing localStorage');
         localStorage.removeItem(this.tokenKey);
@@ -60,6 +87,10 @@ class AuthManager {
         window.location.href = '/login';
     }
 
+    /**
+     * Require authentication for protected pages; redirect if not authenticated
+     * @returns {boolean}
+     */
     requireAuth() {
         console.log('Checking authentication...');
         const isAuth = this.isAuthenticated();
@@ -74,6 +105,11 @@ class AuthManager {
         return true;
     }
 
+    /**
+     * Check if user has one of the allowed roles
+     * @param {string|string[]} allowedRoles
+     * @returns {boolean}
+     */
     hasRole(allowedRoles) {
         const userData = this.getUserData();
         if (!userData || !userData.role) return false;
@@ -86,6 +122,9 @@ class AuthManager {
         return roles.includes(userRole);
     }
 
+    /**
+     * Initialize UI elements with user data (name, role)
+     */
     initializeUI() {
         const userData = this.getUserData();
         if (!userData) return;
@@ -118,5 +157,5 @@ class AuthManager {
     }
 }
 
-// 👇 exportación clara
+// Export AuthManager instance for use in other modules
 export const authManager = new AuthManager();

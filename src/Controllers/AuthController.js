@@ -1,14 +1,27 @@
 // src/Controllers/AuthController.js
-// Authentication controller handling login, register, and user management
+// Authentication controller handling login, register, profile, and password management
+
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { User } from '../Models/User.js';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../Config/config.js';
 import bcrypt from 'bcryptjs/dist/bcrypt.js';
 
+/**
+ * AuthController
+ * Handles authentication and user management:
+ * - generateToken: Create JWT for user
+ * - register: Register a new user
+ * - login: Authenticate user and return token
+ * - getProfile: Get current user's profile
+ * - updateProfile: Update user's profile info
+ * - changePassword: Change user's password
+ */
 export class AuthController {
   /**
    * Generate JWT token for user
+   * @param {Object} user - User object
+   * @returns {string} JWT token
    */
   static generateToken(user) {
     return jwt.sign(
@@ -25,6 +38,8 @@ export class AuthController {
 
   /**
    * Register new user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async register(req, res) {
     try {
@@ -39,9 +54,7 @@ export class AuthController {
       }
 
       const { name, email, password, phone, role_id } = req.body;
-
-      //Define default role: "CUSTOMER" (3)
-
+      // Define default role: "CUSTOMER" (3)
       const assignedRoleId = role_id || 3;
 
       // Create user
@@ -89,6 +102,8 @@ export class AuthController {
 
   /**
    * Login user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async login(req, res) {
     try {
@@ -103,7 +118,6 @@ export class AuthController {
       }
 
       const { email, password } = req.body;
-
       // Find user by email
       const user = await User.findByEmail(email);
       if (!user) {
@@ -112,7 +126,6 @@ export class AuthController {
           message: 'Invalid credentials'
         });
       }
-
       // Verify password
       const isValidPassword = await User.verifyPassword(password, user.password_hash);
       if (!isValidPassword) {
@@ -121,10 +134,8 @@ export class AuthController {
           message: 'Invalid credentials'
         });
       }
-
       // Generate token
       const token = AuthController.generateToken(user);
-
       res.json({
         success: true,
         message: 'Login successful',
@@ -152,18 +163,18 @@ export class AuthController {
 
   /**
    * Get current user profile
+   * @param {Request} req
+   * @param {Response} res
    */
   static async getProfile(req, res) {
     try {
       const user = await User.findById(req.user.user_id);
-      
       if (!user) {
         return res.status(404).json({
           success: false,
           message: 'User not found'
         });
       }
-
       res.json({
         success: true,
         data: {
@@ -189,6 +200,8 @@ export class AuthController {
 
   /**
    * Update user profile
+   * @param {Request} req
+   * @param {Response} res
    */
   static async updateProfile(req, res) {
     try {
@@ -200,17 +213,14 @@ export class AuthController {
           errors: errors.array()
         });
       }
-
       const { name, phone } = req.body;
       const result = await User.update(req.user.user_id, { name, phone });
-
       if (!result.success) {
         return res.status(400).json({
           success: false,
           message: result.message
         });
       }
-
       res.json({
         success: true,
         message: 'Profile updated successfully',
@@ -236,7 +246,9 @@ export class AuthController {
   }
 
   /**
-   * Change password
+   * Change password for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async changePassword(req, res) {
     try {
@@ -248,9 +260,7 @@ export class AuthController {
           errors: errors.array()
         });
       }
-
       const { currentPassword, newPassword } = req.body;
-
       // Get current user with password
       const user = await User.findByEmail(req.user.email);
       if (!user) {
@@ -259,7 +269,6 @@ export class AuthController {
           message: 'User not found'
         });
       }
-
       // Verify current password
       const isValidPassword = await User.verifyPassword(currentPassword, user.password_hash);
       if (!isValidPassword) {
@@ -268,10 +277,8 @@ export class AuthController {
           message: 'Current password is incorrect'
         });
       }
-
       // Update password
       await User.changePassword(req.user.user_id, newPassword);
-
       res.json({
         success: true,
         message: 'Password changed successfully'

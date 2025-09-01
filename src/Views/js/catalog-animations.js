@@ -1,5 +1,13 @@
+// src/Views/js/catalog-animations.js
+// Utility for adding click animations to catalog UI elements
+// Applies scale and opacity transitions on mouse events
+
 // Catalog Click Animations
 class CatalogAnimations {
+  /**
+   * Add click animation to a DOM element
+   * @param {HTMLElement} element - Element to animate
+   */
   static addClickAnimation(element) {
     element.addEventListener('mousedown', () => {
       element.style.transition = 'all 0.1s ease';
@@ -20,6 +28,10 @@ class CatalogAnimations {
     });
   }
 
+  /**
+   * Initialize click animations for catalog UI elements
+   * Applies to search buttons, ebook cards, and all buttons
+   */
   static initializeAnimations() {
     // Add animations to search buttons
     const searchBtn = document.querySelector('.search-btn');

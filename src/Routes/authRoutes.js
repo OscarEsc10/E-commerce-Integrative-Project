@@ -1,5 +1,7 @@
 // src/Routes/authRoutes.js
-// Authentication routes
+// Express routes for user authentication and profile management
+// Some routes are public, others require authentication
+
 import express from 'express';
 import { AuthController } from '../Controllers/AuthController.js';
 import { authenticateToken } from '../Middleware/auth.js';
@@ -12,6 +14,14 @@ import {
 
 const router = express.Router();
 
+/**
+ * POST /register - Register a new user (public)
+ * POST /login - Login and receive JWT token (public)
+ * GET /profile - Get current user's profile (protected)
+ * PUT /profile - Update current user's profile (protected)
+ * PUT /change-password - Change current user's password (protected)
+ * Validation middleware is used for input validation
+ */
 // Public routes
 router.post('/register', validateRegistration, AuthController.register);
 router.post('/login', validateLogin, AuthController.login); 

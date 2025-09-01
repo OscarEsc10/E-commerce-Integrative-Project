@@ -1,4 +1,7 @@
-// View Routes Configuration
+// src/Routes/viewRoutes.js
+// Express routes for serving frontend views and static assets
+// Provides clean URLs and redirects for legacy .html routes
+
 import { Router } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -10,7 +13,10 @@ const router = Router();
 // Base path for views
 const viewsPath = path.join(__dirname, '../Views');
 
-// Route mappings - clean URLs without .html extensions
+/**
+ * Route mappings for clean URLs (no .html extension)
+ * Example: /dashboard serves dashboard.html
+ */
 const routes = {
   '/': 'dashboard.html',
   '/login': 'Login.html',
@@ -35,7 +41,10 @@ Object.entries(routes).forEach(([route, file]) => {
   });
 });
 
-// Redirect old .html routes to clean URLs
+/**
+ * Redirect legacy .html routes to clean URLs
+ * Example: /dashboard.html redirects to /dashboard
+ */
 const redirects = {
   '/Login.html': '/login',
   '/register.html': '/register',
@@ -51,8 +60,9 @@ Object.entries(redirects).forEach(([oldRoute, newRoute]) => {
   });
 });
 
-// Serve static assets
-
+/**
+ * Serve static assets from /Assest
+ */
 router.use('/Assest', (req, res, next) => {
   const assetsPath = path.join(__dirname, '../../Assest');
   res.sendFile(path.join(assetsPath, req.path), (err) => {
@@ -62,7 +72,9 @@ router.use('/Assest', (req, res, next) => {
   });
 });
 
-// Serve JavaScript files
+/**
+ * Serve JavaScript files for views
+ */
 router.use('/src/Views/js', (req, res, next) => {
   const jsPath = path.join(viewsPath, 'js');
   res.sendFile(path.join(jsPath, req.path), (err) => {

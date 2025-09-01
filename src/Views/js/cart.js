@@ -1,11 +1,16 @@
+// src/Views/js/cart.js
+// Cart page logic for rendering cart items and handling quantity changes/removal
+
 import { cartManager } from './CartManager.js';
 
+// Initialize cart and render items when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   await cartManager.init();
   renderCartItems();
 });
 
 function renderCartItems() {
+  // Render cart items in the cart list element
   const list = document.getElementById('cart-list');
   const items = cartManager.getCart();
 

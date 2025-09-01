@@ -1,15 +1,23 @@
+/**
+ * Customer Orders View Logic
+ * Renders the list of orders for the logged-in customer, including status, date, and total.
+ * Uses apiClient to fetch orders and displays them in a table format.
+ */
 import { apiClient } from './api.js';
 import { authManager } from './auth.js';
 import { escapeHtml } from './helpers.js';
 
+/**
+ * Render the orders for the current customer in the orders section.
+ */
 export async function renderCustomerOrders() {
   const user = authManager.getUserData();
-  if (!user) return alert('Usuario no identificado');
+  if (!user) return alert('User not identified');
 
   const section = document.getElementById('customer-orders-section');
-  if (!section) return console.warn('No existe la sección de compras');
+  if (!section) return console.warn('Orders section does not exist');
   section.classList.remove('hidden');
-  section.innerHTML = '<p>Cargando órdenes...</p>';
+  section.innerHTML = '<p>Loading orders...</p>';
 
   try {
     const userId = user.user_id;
@@ -17,7 +25,7 @@ export async function renderCustomerOrders() {
     const orders = data?.orders || [];
 
     if (!orders.length) {
-      section.innerHTML = '<p>No tienes compras registradas 🚀</p>';
+      section.innerHTML = '<p>You have no registered purchases 🚀</p>';
       return;
     }
 
@@ -35,7 +43,7 @@ export async function renderCustomerOrders() {
     `).join('');
 
     section.innerHTML = `
-      <h3 class="text-xl font-bold mb-4">Mis Compras</h3>
+      <h3 class="text-xl font-bold mb-4">My Purchases</h3>
       <table class="w-full text-left border rounded-lg overflow-hidden">
         <thead class="bg-gray-100">
           <tr>
@@ -51,12 +59,16 @@ export async function renderCustomerOrders() {
       </table>
     `;
   } catch (err) {
-    console.error('Error cargando órdenes del cliente:', err);
-    section.innerHTML = '<p class="text-red-600">Error cargando compras. Revisa la consola.</p>';
+    console.error('Error loading customer orders:', err);
+    section.innerHTML = '<p class="text-red-600">Error loading purchases. Check the console.</p>';
   }
 }
 
-// Función para colorear los estados
+/**
+ * Get the color classes for the order status badge.
+ * @param {string} status - The status name of the order
+ * @returns {string} CSS classes for the badge color
+ */
 function getStatusColor(status) {
   switch (status) {
     case 'PENDING': return 'bg-yellow-100 text-yellow-800';

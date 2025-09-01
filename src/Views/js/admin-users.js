@@ -1,6 +1,12 @@
-// admin/js/admin-users.js
-import { apiClient } from './api.js'; // <-- ruta relativa desde admin/js -> public/js/api.js
+// src/Views/js/admin-users.js
+// Admin interface for managing users: create, edit, delete, and list users
 
+import { apiClient } from './api.js';
+
+/**
+ * Render the admin users management section
+ * Displays a table of users and a modal for adding/editing
+ */
 export async function renderManageUsers() {
   const section = document.getElementById('users-section');
   if (!section) return;
@@ -62,6 +68,9 @@ export async function renderManageUsers() {
 
 let allUsersCache = [];
 
+/**
+ * Fetch users from the API and render the users table
+ */
 async function fetchAndRenderUsers() {
   const wrapper = document.getElementById('users-table-wrapper');
   wrapper.innerHTML = 'Cargando usuarios...';
@@ -77,6 +86,10 @@ async function fetchAndRenderUsers() {
   }
 }
 
+/**
+ * Render the users table with the given users array
+ * @param {Array} users - Array of user objects
+ */
 function renderUsersTable(users) {
   const wrapper = document.getElementById('users-table-wrapper');
   if (!Array.isArray(users) || users.length === 0) {
@@ -130,6 +143,9 @@ function renderUsersTable(users) {
   });
 }
 
+/**
+ * Handle search input to filter users by name or email
+ */
 function onSearchInput(e) {
   const term = (e.target.value || '').toLowerCase().trim();
   if (!term) return renderUsersTable(allUsersCache);
@@ -141,9 +157,10 @@ function onSearchInput(e) {
   renderUsersTable(filtered);
 }
 
-/* --------------------------
-   Modal / Create / Update
-   -------------------------- */
+/**
+ * Open the modal for adding or editing a user
+ * @param {Object|null} user - User data to edit, or null to add new
+ */
 function openUserModal(user = null) {
   const modal = document.getElementById('user-modal');
   if (!modal) return;
@@ -173,6 +190,9 @@ function openUserModal(user = null) {
   form.addEventListener('submit', handler);
 }
 
+/**
+ * Submit the user form for creating or updating a user
+ */
 async function submitUserForm() {
   const id = document.getElementById('user-id').value;
   const name = document.getElementById('user-name').value.trim();
@@ -202,9 +222,11 @@ async function submitUserForm() {
   }
 }
 
-/* --------------------------
-   Helpers
-   -------------------------- */
+/**
+ * Escape HTML special characters in a string
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string
+ */
 function escapeHtml(str) {
   if (str === undefined || str === null) return '';
   return String(str).replace(/[&<>"']/g, (m) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);

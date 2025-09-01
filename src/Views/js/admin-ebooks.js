@@ -1,6 +1,12 @@
 // src/Views/js/admin-ebooks.js
+// Admin interface for managing ebooks: create, edit, delete, and list ebooks
+
 import { apiClient } from "./api.js";
 
+/**
+ * Render the admin ebooks management section
+ * Displays a table of ebooks and a modal for adding/editing
+ */
 export async function renderAdminEbooks() {
   const container = document.getElementById("ebooks-section");
   if (!container) {
@@ -102,6 +108,9 @@ export async function renderAdminEbooks() {
 
 // ====================== Helpers ======================
 
+/**
+ * Load and render the list of ebooks in the table
+ */
 async function loadEbooks() {
   const listEl = document.getElementById("ebooks-list");
   try {
@@ -148,6 +157,10 @@ async function loadEbooks() {
   }
 }
 
+/**
+ * Open the modal for adding or editing an ebook
+ * @param {Object|null} ebook - Ebook data to edit, or null to add new
+ */
 function openModal(ebook = null) {
   document.getElementById("ebook-modal").classList.remove("hidden");
   document.getElementById("modal-title").textContent = ebook ? "Editar Ebook" : "Agregar Ebook";
@@ -159,6 +172,9 @@ function openModal(ebook = null) {
   document.getElementById("ebook-stock").value = ebook?.stock || 0;
 }
 
+/**
+ * Close the ebook modal
+ */
 function closeModal() {
   document.getElementById("ebook-modal").classList.add("hidden");
 }

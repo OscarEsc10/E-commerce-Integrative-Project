@@ -1,17 +1,20 @@
+<!-- src/Views/admin/admin-seller-request.html -->
+<!-- Admin view for managing seller requests -->
 <div class="max-w-7xl mx-auto p-6">
-  <h2 class="text-2xl font-bold mb-4">Solicitudes de Vendedor</h2>
+  <h2 class="text-2xl font-bold mb-4">Seller Requests</h2>
   <table class="w-full text-left border-collapse">
     <thead>
       <tr>
         <th class="border p-2">ID</th>
-        <th class="border p-2">Usuario</th>
-        <th class="border p-2">Negocio</th>
-        <th class="border p-2">Documento</th>
-        <th class="border p-2">Estado</th>
-        <th class="border p-2">Acciones</th>
+        <th class="border p-2">User</th>
+        <th class="border p-2">Business</th>
+        <th class="border p-2">Document</th>
+        <th class="border p-2">Status</th>
+        <th class="border p-2">Actions</th>
       </tr>
     </thead>
     <tbody id="seller-requests-tbody"></tbody>
   </table>
 </div>
+<!-- Loads the JavaScript module for seller request management -->
 <script type="module" src="../js/admin-seller-requests.js"></script>

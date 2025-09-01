@@ -1,13 +1,19 @@
+// Admin interface for managing seller requests: approve or reject requests
+
 import { apiClient } from "./api.js";
 
 const tbody = document.getElementById("seller-requests-tbody");
 
+/**
+ * Render the seller requests management section
+ * Displays a list of seller requests and allows approving or rejecting them
+ */
 async function renderManageSellers() {
   const section = document.getElementById("sellers-section");
   section.innerHTML = `<h3 class="text-2xl font-bold mb-4">Solicitudes de Vendedor</h3>`;
 
   try {
-    // Llamada al método de apiClient
+    // call the method apiClient
     const requests = await apiClient.getSellerRequests();
 
     if (!requests || requests.length === 0) {
@@ -44,17 +50,17 @@ async function renderManageSellers() {
       </ul>
     `;
 
-    // Eventos aprobar/rechazar
+    // Events approve/denegatye
     section.querySelectorAll(".approve-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         await apiClient.updateSellerRequestStatus(btn.dataset.id, "approved");
-        renderManageSellers(); // refrescar vista
+        renderManageSellers(); // refresh the view
       });
     });
     section.querySelectorAll(".reject-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         await apiClient.updateSellerRequestStatus(btn.dataset.id, "rejected");
-        renderManageSellers(); // refrescar vista
+        renderManageSellers(); // refresh the view
       });
     });
   } catch (err) {

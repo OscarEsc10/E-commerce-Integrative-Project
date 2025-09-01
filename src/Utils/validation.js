@@ -1,8 +1,13 @@
 // src/Utils/validation.js
-// Input validation rules using express-validator
+// Input validation rules for user registration, login, profile update, and password change
+// Uses express-validator for request body validation
+
 import { body } from 'express-validator';
 
-// User registration validation
+/**
+ * Validation rules for user registration
+ * Checks name, email, password, phone, and role fields
+ */
 export const validateRegistration = [
   body('name')
     .trim()
@@ -37,7 +42,10 @@ export const validateRegistration = [
     .withMessage('Role must be admin, seller, or customer')
 ];
 
-// User login validation
+/**
+ * Validation rules for user login
+ * Checks email and password fields
+ */
 export const validateLogin = [
   body('email')
     .trim()
@@ -50,7 +58,10 @@ export const validateLogin = [
     .withMessage('Password is required')
 ];
 
-// Profile update validation
+/**
+ * Validation rules for profile update
+ * Checks name and phone fields
+ */
 export const validateProfileUpdate = [
   body('name')
     .optional()
@@ -67,7 +78,10 @@ export const validateProfileUpdate = [
     .withMessage('Please provide a valid phone number')
 ];
 
-// Password change validation
+/**
+ * Validation rules for password change
+ * Checks currentPassword, newPassword, and confirmPassword fields
+ */
 export const validatePasswordChange = [
   body('currentPassword')
     .notEmpty()

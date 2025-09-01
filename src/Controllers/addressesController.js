@@ -1,7 +1,23 @@
-// Controllers/AddressController.js
+// AddressController.js
+// Controller for managing user addresses (CRUD operations)
+// All responses are JSON and require user authentication
+
 import { Address } from '../Models/Addresses.js';
 
+/**
+ * AddressController
+ * Handles address-related operations for authenticated users:
+ * - getAll: Retrieve all addresses for the current user
+ * - create: Add a new address for the current user
+ * - update: Update an existing address
+ * - delete: Remove an address
+ */
 export const AddressController = {
+  /**
+   * Get all addresses for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
+   */
   getAll: async (req, res) => {
     try {
       const user_id = req.user?.user_id;
@@ -14,6 +30,11 @@ export const AddressController = {
     }
   },
 
+  /**
+   * Create a new address for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
+   */
   create: async (req, res) => {
     try {
       const user_id = req.user?.user_id;
@@ -30,6 +51,11 @@ export const AddressController = {
     }
   },
 
+  /**
+   * Update an address for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
+   */
   update: async (req, res) => {
     try {
       const user_id = req.user?.user_id;
@@ -47,6 +73,11 @@ export const AddressController = {
     }
   },
 
+  /**
+   * Delete an address for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
+   */
   delete: async (req, res) => {
     try {
       const user_id = req.user?.user_id;

@@ -1,6 +1,12 @@
 // src/Views/js/admin-reports.js
-import { authManager } from './auth.js'; // ajusta ruta según tu proyecto
+// Admin interface for viewing sales reports and statistics
 
+import { authManager } from './auth.js';
+
+/**
+ * Render the admin sales reports section
+ * Displays sales statistics and payment method breakdown
+ */
 export async function renderAdminReports() {
   const container = document.getElementById('reports-section');
   if (!container) {

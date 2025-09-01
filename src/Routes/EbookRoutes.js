@@ -1,4 +1,7 @@
-// src/Routes/ebookRoutes.js
+// src/Routes/EbookRoutes.js
+// Express routes for managing ebooks
+// Some routes are public, others require authentication and/or specific roles
+
 import { Router } from 'express';
 import { authenticateToken, requireRole } from '../Middleware/auth.js';
 import { pool } from '../../Config/ConnectionToBd.js';
@@ -7,12 +10,23 @@ import { EbookController } from '../Controllers/EbookController.js';
 const router = Router();
 
 /**
- * GET /api/ebooks
- * Todos los usuarios autenticados pueden ver ebooks
- * - Admin ve todos
- * - Seller ve solo sus ebooks
- * - Customer ve todos
+ * GET /api/ebooks - Get all ebooks (authenticated users)
+ *   - Admin: all ebooks
+ *   - Seller: only their ebooks
+ *   - Customer: all ebooks
+ * POST /api/ebooks - Create a new ebook (admin/seller only)
+ * PUT /api/ebooks/:id - Update an ebook (admin/seller owner only)
+ * DELETE /api/ebooks/:id - Delete an ebook (admin/seller owner only)
+ * GET /api/ebooks/paginated - Get paginated ebooks (public)
+ * GET /api/ebooks/search - Search ebooks (public)
+ * GET /api/ebooks/:id - Get ebook by ID (public)
+ * GET /api/ebooks/new - Get new ebooks (authenticated)
+ * GET /api/ebooks/used - Get used ebooks (authenticated)
+ * GET /api/ebooks/donate - Get donated ebooks (authenticated)
+ * GET /api/ebooks/condition/:condition_id - Get ebooks by condition (authenticated)
  */
+
+// Authenticated routes for viewing and managing ebooks
 router.get('/', authenticateToken, async (req, res) => {
   const user = req.user;
   try {
@@ -30,11 +44,6 @@ router.get('/', authenticateToken, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
-/**
- * POST /api/ebooks
- * Solo admin y seller pueden crear ebooks
- */
 router.post('/', authenticateToken, requireRole(['admin', 'seller']), async (req, res) => {
   const user = req.user;
   const { name, description, price, category_id } = req.body;
@@ -56,11 +65,6 @@ router.post('/', authenticateToken, requireRole(['admin', 'seller']), async (req
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
-/**
- * PUT /api/ebooks/:id
- * Solo admin o el seller dueño del ebook puede actualizar
- */
 router.put('/:id', authenticateToken, requireRole(['admin', 'seller']), async (req, res) => {
   const { id } = req.params;
   const user = req.user;
@@ -88,11 +92,6 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'seller']), async (r
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
-/**
- * DELETE /api/ebooks/:id
- * Solo admin o seller dueño del ebook puede eliminar
- */
 router.delete('/:id', authenticateToken, requireRole(['admin', 'seller']), async (req, res) => {
   const { id } = req.params;
   const user = req.user;
@@ -113,12 +112,10 @@ router.delete('/:id', authenticateToken, requireRole(['admin', 'seller']), async
   }
 });
 
-// Public pagination routes (no authentication required for catalog viewing)
+// Public routes for catalog viewing
 router.get('/paginated', EbookController.getPaginated);
 router.get('/search', EbookController.search);
-
-// backend - ebooks.routes.js
-router.get("/:id", async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const ebook = await pool.query(
@@ -134,16 +131,10 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Public pagination routes (no authentication required for catalog viewing)
-router.get('/paginated', EbookController.getPaginated);
-router.get('/search', EbookController.search);
- 
-
-//manage to ebooks_status(new,used,donate)
-router.get('/new', authenticateToken, EbookController.getNew)
+// Authenticated routes for ebook status
+router.get('/new', authenticateToken, EbookController.getNew);
 router.get('/used', authenticateToken, EbookController.getUsed);
 router.get('/donate', authenticateToken, EbookController.getDonate);
+router.get('/condition/:condition_id', authenticateToken, EbookController.getByCondition);
 
-//defaut ebook_status
-router.get('/condition/:condition_id', authenticateToken, EbookController.getByCondition)
 export default router;

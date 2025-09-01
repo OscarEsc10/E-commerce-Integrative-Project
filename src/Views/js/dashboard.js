@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ------------------------
-   Inicialización
+   initialize Dashboard
    ------------------------ */
 async function initDashboard() {
   console.log('Dashboard initializing...');
@@ -28,23 +28,23 @@ async function initDashboard() {
     // Navbar / welcome
     updateNavbarUser(user);
 
-  // Mostrar botones según rol
+  // Show buttons based on role
   setupUIForRole(user);
 
-  // Conectar eventos
+  // Connect events
   attachEventListeners(user);
   setupCartFunctionality();
   setupEbooksSection();
 
-  // Cargar carrito inicialmente (badge + lista)  
+  // Loaded shopping cart 
   await cartManager.loadCart();
 
 
-  // Footer dinámico / stats
+  // Dynamic footer / stats
   initializeDynamicFooter();
   try { await loadFooterStats(); } catch (e) { console.warn(e); }
 
-  // Actualizar cada cierto tiempo (opcional)
+  // Update every depend of time (option)
   setInterval(() => {
     authManager.initializeUI();
     loadFooterStats().catch(()=>{});
@@ -90,7 +90,7 @@ function getUserId(user) {
 }
 
 /* ------------------------
-   UI por rol
+   UI for rol
    ------------------------ */
 function setupUIForRole(user) {
   const role = getRoleFromUser(user);
@@ -98,14 +98,14 @@ function setupUIForRole(user) {
   const show = id => { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); };
   const hide = id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); };
 
-  // Asegurar estado inicial (ocultar)
+  // Make sure the initial status (hide) 
   [
     'btn-manage-users','btn-manage-sellers','btn-reports','btn-manage-ebooks',
     'btn-manage-orders','btn-sales-summary','btn-view-catalog','btn-request-seller',
     'btn-become-seller','btn-cart','btn-view-profile','btn-request-seller','btn-manage-sellers', 'btn-view-orders'
   ].forEach(id => hide(id));
 
-  // Perfil siempre visible
+  // Profile always visible
   show('btn-view-profile');
 
   if (role === 'admin') {
@@ -114,7 +114,8 @@ function setupUIForRole(user) {
     show('btn-manage-ebooks');
     show('btn-manage-orders');
     show('btn-reports');
-    // admin no necesita carrito por defecto, pero si quieres mostrarlo:
+
+    // The admin don't need a default cart
     // show('btn-cart');
   }
 
@@ -123,7 +124,7 @@ function setupUIForRole(user) {
     show('btn-manage-ebooks');
     show('btn-manage-orders-seller');
     show('btn-sales-summary');
-    show('btn-cart'); // corresponde a id="btn-cart" en el HTML
+    show('btn-cart'); // correspond the id="btn-cart" in the HTML
   }
 
   if (role === 'customer') {
@@ -144,13 +145,13 @@ function attachEventListeners(user) {
     if (el) el.addEventListener('click', fn);
   };
 
-  // Navegación / secciones
-  on('btn-view-catalog', async () => window.location.href = 'ebooks-dashboard.html'); // página separada
+  // Navegation / seccions
+  on('btn-view-catalog', async () => window.location.href = 'ebooks-dashboard.html'); // Separate view
   
   on('btn-manage-ebooks', async() => {
     loadSection('ebooks-section');
     await renderAdminEbooks();
-  }); // admins/sellers van a la vista de ebooks dedicada
+  }); // admins/sellers can see the ebooks view
 
   on('btn-manage-orders', async () => {
     loadSection('orders-section');
@@ -210,7 +211,7 @@ function attachEventListeners(user) {
     });
   }
 
-  // Carrito: mostrar sección y cargar datos desde cartManager
+  // Cart: show section and load the data from cartManager
   on('btn-cart', async () => {
     loadSection('cart-section');
     try {

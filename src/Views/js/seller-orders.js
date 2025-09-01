@@ -1,14 +1,22 @@
+/**
+ * Seller Orders View Logic
+ * Renders the list of orders for the logged-in seller, including status, date, and total.
+ * Uses apiClient to fetch orders and displays them in a table format.
+ */
 import { apiClient } from './api.js';
 import { authManager } from './auth.js';
 import { escapeHtml } from './helpers.js';
 
+/**
+ * Render the orders for the current seller in the orders section.
+ */
 export async function renderSellerOrders() {
   const user = authManager.getUserData();
-  if (!user) return alert('Usuario no identificado');
+  if (!user) return alert('User not identified');
 
   const section = document.getElementById('orders-section');
   section.classList.remove('hidden');
-  section.innerHTML = '<p>Cargando órdenes...</p>';
+  section.innerHTML = '<p>Loading orders...</p>';
 
   try {
     const user = authManager.getUserData();
@@ -17,7 +25,7 @@ export async function renderSellerOrders() {
     const orders = data?.orders || [];
 
     if (!orders.length) {
-      section.innerHTML = '<p>No tienes órdenes registradas 🚀</p>';
+    section.innerHTML = '<p>You have no registered orders 🚀</p>';
       return;
     }
 
@@ -32,14 +40,14 @@ export async function renderSellerOrders() {
 
 
     section.innerHTML = `
-      <h3 class="text-2xl font-bold mb-4">Mis Órdenes</h3>
+    <h3 class="text-2xl font-bold mb-4">My Orders</h3>
   <div class="overflow-x-auto">
     <table class="min-w-full border rounded-lg overflow-hidden text-left">
       <thead class="bg-gray-100">
         <tr>
           <th class="px-4 py-2">ID</th>
           <th class="px-4 py-2">Status</th>
-          <th class="px-4 py-2">Fecha</th>
+      <th class="px-4 py-2">Date</th>
           <th class="px-4 py-2">Total</th>
         </tr>
       </thead>
@@ -49,7 +57,7 @@ export async function renderSellerOrders() {
       </table>
     `;
   } catch (err) {
-    console.error('Error cargando órdenes del seller:', err);
-    section.innerHTML = '<p>Error cargando órdenes. Revisa la consola.</p>';
+  console.error('Error loading seller orders:', err);
+  section.innerHTML = '<p>Error loading orders. Check the console.</p>';
   }
 }

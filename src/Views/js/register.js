@@ -1,16 +1,28 @@
-// Register JavaScript Logic
+/**
+ * Register View Logic
+ * Handles user registration, password validation, form submission, and feedback alerts.
+ */
 class RegisterManager {
     constructor() {
         this.API_BASE_URL = 'http://localhost:3000/api/auth';
+        /**
+         * Initialize registration logic and UI elements.
+         */
         this.init();
     }
 
+    /**
+     * Initialize UI elements and event listeners for registration.
+     */
     init() {
         this.initializeElements();
         this.setupPasswordValidation();
         this.setupFormSubmission();
     }
 
+    /**
+     * Get references to DOM elements used in registration.
+     */
     initializeElements() {
         this.passwordInput = document.getElementById('password');
         this.requirements = {
@@ -26,6 +38,9 @@ class RegisterManager {
         this.alertContainer = document.getElementById('alert-container');
     }
 
+    /**
+     * Set up password validation feedback for requirements.
+     */
     setupPasswordValidation() {
         if (!this.passwordInput) return;
 
@@ -40,6 +55,9 @@ class RegisterManager {
         });
     }
 
+    /**
+     * Set up form submission event listener for registration.
+     */
     setupFormSubmission() {
         if (!this.registerForm) return;
 
@@ -49,6 +67,10 @@ class RegisterManager {
         });
     }
 
+    /**
+     * Handle registration form submission, validation, and API call.
+     * @param {Event} e - The form submit event
+     */
     async handleRegistration(e) {
         const formData = new FormData(e.target);
         const registerData = {
@@ -56,12 +78,12 @@ class RegisterManager {
             email: formData.get('email'),
             password: formData.get('password'),
             phone: formData.get('phone'),
-            role_id: 3 // todos entran como "customer"
+            role_id: 3 // all users register as "customer"
         };
 
         const confirmPassword = formData.get('confirmPassword');
         if (registerData.password !== confirmPassword) {
-            this.showAlert('Las contraseñas no coinciden', 'error');
+            this.showAlert('Passwords do not match', 'error');
             return;
         }
 
@@ -88,7 +110,7 @@ class RegisterManager {
                 console.log('Token stored:', localStorage.getItem('jwt_token'));
                 console.log('User data stored:', localStorage.getItem('user_data'));
                 
-                this.showAlert('Cuenta creada exitosamente. Redirigiendo...', 'success');
+                this.showAlert('Account created successfully. Redirecting...', 'success');
                 
                 // Immediate redirect
                 window.location.href = '/dashboard';
@@ -97,17 +119,21 @@ class RegisterManager {
                     const errorMessages = result.errors.map(err => err.msg).join('<br>');
                     this.showAlert(errorMessages, 'error');
                 } else {
-                    this.showAlert(result.message || 'Error en el registro', 'error');
+                    this.showAlert(result.message || 'Registration error', 'error');
                 }
             }
         } catch (error) {
             console.error('Registration error:', error);
-            this.showAlert('Error de conexión. Por favor, intenta de nuevo.', 'error');
+            this.showAlert('Connection error. Please try again.', 'error');
         } finally {
             this.setLoadingState(false);
         }
     }
 
+    /**
+     * Set loading state for the registration form and button.
+     * @param {boolean} isLoading - Whether to show loading state
+     */
     setLoadingState(isLoading) {
         if (this.registerBtn) {
             this.registerBtn.disabled = isLoading;
@@ -120,6 +146,11 @@ class RegisterManager {
         }
     }
 
+    /**
+     * Show an alert message in the registration view.
+     * @param {string} message - The message to display
+     * @param {string} type - The type of alert ('error' or 'success')
+     */
     showAlert(message, type) {
         if (!this.alertContainer) return;
 
@@ -132,6 +163,7 @@ class RegisterManager {
     }
 }
 
+// Initialize RegisterManager when DOM is loaded
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new RegisterManager();

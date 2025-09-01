@@ -1,4 +1,8 @@
-// js/EbooksDashboard.js
+/**
+ * Ebooks Dashboard View Logic
+ * Handles displaying, filtering, and paginating ebooks for the dashboard view.
+ * Supports category filtering, search, donation condition, and role-based features.
+ */
 import { authManager } from './auth.js';
 import { apiClient } from './api.js';
 import { cartManager } from './CartManager.js';
@@ -13,9 +17,15 @@ class EbooksDashboard {
     this.totalPages = 1;
     this.totalItems = 0;
 
+   /**
+    * Initialize dashboard and load user, categories, and ebooks.
+    */
     this.init();
   }
 
+  /**
+  * Initialize dashboard logic, navbar, categories, and ebooks.
+  */
   async init() {
     try {
       if (!authManager.requireAuth()) return;
@@ -29,7 +39,7 @@ class EbooksDashboard {
       this.toggleFeaturesByRole();
         } catch (err) {
       console.error('EbooksDashboard init error:', err);
-      this.showError('Error al inicializar dashboard.');
+    this.showError('Error initializing dashboard.');
         }
 
     this.conditionSelect = document.getElementById('ebook-condition');
@@ -42,6 +52,9 @@ class EbooksDashboard {
 
   }
 
+  /**
+  * Set up the navbar with user info and navigation buttons.
+  */
   setupNavbar() {
     const userNameEl = document.getElementById('userName');
     const userAvatarEl = document.getElementById('userAvatar');
@@ -49,14 +62,17 @@ class EbooksDashboard {
     const logoutBtn = document.getElementById('logout-btn');
     const backBtn = document.getElementById('btn-back-dashboard');
 
-    if (userNameEl) userNameEl.textContent = this.user.full_name || this.user.name || 'Usuario';
-    if (welcomeEl) welcomeEl.textContent = `Bienvenido, ${this.user.full_name || this.user.name || 'Usuario'}`;
-    if (userAvatarEl) userAvatarEl.textContent = (this.user.full_name || this.user.name || 'U')[0].toUpperCase();
+   if (userNameEl) userNameEl.textContent = this.user.full_name || this.user.name || 'User';
+   if (welcomeEl) welcomeEl.textContent = `Welcome, ${this.user.full_name || this.user.name || 'User'}`;
+   if (userAvatarEl) userAvatarEl.textContent = (this.user.full_name || this.user.name || 'U')[0].toUpperCase();
 
     if (logoutBtn) logoutBtn.addEventListener('click', () => authManager.logout());
     if (backBtn) backBtn.addEventListener('click', () => window.location.href = '/dashboard');
   }
 
+  /**
+  * Show/hide features based on user role (admin/seller/customer).
+  */
   toggleFeaturesByRole() {
     const role = this.user.role || 'customer';
     const addBtn = document.getElementById('add-ebook-btn');
@@ -66,6 +82,9 @@ class EbooksDashboard {
     }
   }
 
+  /**
+  * Load categories from API and populate category filter dropdown.
+  */
   async loadCategories() {
     try {
       this.categories = await apiClient.getCategories();
@@ -81,10 +100,14 @@ class EbooksDashboard {
       }
     } catch (err) {
       console.error('Error cargando categorías:', err);
-      this.showError('No se pudieron cargar las categorías.');
+    this.showError('Could not load categories.');
     }
   }
 
+  /**
+  * Load ebooks from API, with optional search and condition filters.
+  * Handles pagination and donation condition.
+  */
   async loadEbooks(searchTerm = '', condition = '') {
   try {
     this.showSpinner(true);
@@ -131,12 +154,16 @@ class EbooksDashboard {
 
   } catch (err) {
     console.error('Error cargando ebooks:', err);
-    this.showError('No se pudieron cargar los ebooks: ' + err.message);
+   this.showError('Could not load ebooks: ' + err.message);
   } finally {
     this.showSpinner(false);
   }
 }
 
+  /**
+  * Render the ebooks as cards in the dashboard view.
+  * Handles donation condition and empty state.
+  */
 renderEbooks(ebooks, condition = '') {
   const container = condition === '3'
     ? document.getElementById('donate-grid')
@@ -146,7 +173,7 @@ renderEbooks(ebooks, condition = '') {
 
   container.innerHTML = '';
   if (ebooks.length === 0) {
-    container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay ebooks disponibles</div>';
+   container.innerHTML = '<div class="text-center text-gray-500 py-8">No ebooks available</div>';
     return;
   }
 
@@ -159,7 +186,7 @@ renderEbooks(ebooks, condition = '') {
         <h4 class="font-semibold text-lg mb-2">${e.name}</h4>
         <p class="text-gray-600 text-sm mb-4">${e.description || ''}</p>
         <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-2">
-          ${e.category_name || 'Sin categoría'}
+       ${e.category_name || 'No category'}
         </span>
       </div>
       <div>
@@ -170,6 +197,9 @@ renderEbooks(ebooks, condition = '') {
       });
     }
 
+  /**
+  * Render pagination controls for the dashboard view.
+  */
   renderPagination() {
     const paginationContainer = document.getElementById('pagination');
     if (!paginationContainer) return;
@@ -189,11 +219,18 @@ renderEbooks(ebooks, condition = '') {
     paginationContainer.innerHTML = html;
   }
 
+  /**
+  * Go to a specific page in the dashboard and reload ebooks.
+  * @param {number} page - Page number to go to
+  */
   async goToPage(page) {
     this.currentPage = page;
     await this.loadEbooks();
   }
 
+  /**
+  * Attach listeners for search, category filter, and cart button.
+  */
   attachStaticListeners() {
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.addEventListener('input', async e => {
@@ -212,12 +249,20 @@ renderEbooks(ebooks, condition = '') {
     if (cartBtn) cartBtn.addEventListener('click', () => cartManager.renderCart());
   }
 
+  /**
+  * Show or hide the loading spinner during async operations.
+  * @param {boolean} show - Whether to show the spinner
+  */
   showSpinner(show) {
     const spinner = document.getElementById('loading-spinner');
     if (!spinner) return;
     spinner.classList.toggle('hidden', !show);
   }
 
+  /**
+  * Show an error message to the user in the dashboard view.
+  * @param {string} msg - Error message to display
+  */
   showError(msg) {
     const errEl = document.getElementById('error-message');
     const errText = document.getElementById('error-text');
@@ -229,5 +274,5 @@ renderEbooks(ebooks, condition = '') {
   }
 }
 
-// Inicialización global
+// Global initialization
 window.dashboard = new EbooksDashboard();

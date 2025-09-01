@@ -2,7 +2,10 @@
 import { pool } from '../../Config/ConnectionToBd.js';
 
 export class Address {
-  // Obtener todas las direcciones de un usuario
+  /**
+   * Get all addresses of a specific user.
+   * Orders results so that the default address (is_default = true) comes first.
+   */
   static async findByUserId(user_id) {
     const query = `
       SELECT *
@@ -14,13 +17,17 @@ export class Address {
     return rows;
   }
 
-  // Crear una nueva dirección
+  /**
+   * Create a new address for a user.
+   * - If `is_default = true`, it will remove the default status from other addresses.
+   * - Wraps queries in a transaction to ensure consistency.
+   */
   static async create({ user_id, street, city, state, postal_code, country, is_default = false }) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      // Si la nueva dirección es default, quitar default de otras
+      // If this new address is marked as default, reset other addresses
       if (is_default) {
         await client.query(
           'UPDATE addresses SET is_default = false WHERE user_id = $1',
@@ -47,19 +54,24 @@ export class Address {
       return rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('Error creando dirección:', error);
+      console.error('Error creating address:', error);
       throw error;
     } finally {
       client.release();
     }
   }
 
-  // Actualizar dirección existente
+  /**
+   * Update an existing address.
+   * - Dynamically builds the SQL query based on provided fields in `data`.
+   * - Ensures the update belongs to the correct user.
+   */
   static async update(address_id, user_id, data) {
     const fields = [];
     const values = [];
     let i = 1;
 
+    // Build dynamic query
     for (const key in data) {
       fields.push(`${key} = $${i}`);
       values.push(data[key]);
@@ -77,7 +89,10 @@ export class Address {
     return rows[0];
   }
 
-  // Eliminar dirección
+  /**
+   * Delete an address by ID for a specific user.
+   * Returns the deleted record if successful.
+   */
   static async delete(address_id, user_id) {
     const query = `
       DELETE FROM addresses
@@ -88,7 +103,10 @@ export class Address {
     return rows[0];
   }
 
-  // Obtener dirección por id
+  /**
+   * Find a specific address by ID and user ID.
+   * Useful to verify ownership of the address.
+   */
   static async findById(address_id, user_id) {
     const query = `
       SELECT *

@@ -1,14 +1,27 @@
-// js/CartManager.js
+// src/Views/js/CartManager.js
+// CartManager: handles cart operations (add, remove, update, render, badge updates)
+// Integrates with backend API and manages local cart state
+
 import { apiClient } from './api.js';
 import { authManager } from './auth.js';
 
 export const cartManager = {
+  /**
+   * Array of cart items currently in the cart
+   */
   cartItems: [],
 
+  /**
+   * Get all cart items
+   * @returns {Array}
+   */
   getCartItems() {
     return this.cartItems || [];
   },
 
+  /**
+   * Clear the cart (server and local)
+   */
   async clearCart() {
     try {
       // Try to clear cart on server
@@ -29,6 +42,9 @@ export const cartManager = {
     window.dispatchEvent(new CustomEvent('cartCleared'));
   },
 
+  /**
+   * Update all cart badges in the UI to show the current count
+   */
   forceUpdateAllBadges() {
     const badges = [
       document.querySelector('.cart-badge'),
@@ -46,6 +62,9 @@ export const cartManager = {
     });
   },
 
+  /**
+   * Remove an item from the cart by ebookId
+   */
   async removeItem(ebookId) {
     try {
       // Try to remove from server first
@@ -63,6 +82,9 @@ export const cartManager = {
     this.renderCart(this.cartItems);
   },
 
+  /**
+   * Load cart items from the server
+   */
   async loadCart() {
     try {
       const resp = await apiClient.makeRequest('/cart', { method: 'GET' });
@@ -78,6 +100,9 @@ export const cartManager = {
     }
   },
 
+  /**
+   * Add an item to the cart
+   */
   async addItem(ebookId, quantity = 1, ebookData = null) {
     try {
       await apiClient.makeRequest('/cart', {
@@ -112,6 +137,9 @@ export const cartManager = {
     }
   },
 
+  /**
+   * Update the quantity of a cart item
+   */
   async updateItem(itemId, quantity) {
     try {
       await apiClient.makeRequest(`/cart/${itemId}`, {
@@ -124,6 +152,9 @@ export const cartManager = {
     }
   },
 
+  /**
+   * Delete a cart item by itemId
+   */
   async deleteItem(itemId) {
     try {
       await apiClient.makeRequest(`/cart/${itemId}`, { method: 'DELETE' });
@@ -133,6 +164,10 @@ export const cartManager = {
     }
   },
 
+  /**
+   * Render the cart items in the UI
+   * @param {Array} items - Array of cart items
+   */
   renderCart(items) {
     const list = document.getElementById('cart-list');
     if (!list) return;
@@ -183,6 +218,10 @@ export const cartManager = {
      });
     },
 
+  /**
+   * Update the cart badge count in the UI
+   * @param {number} count - Number of items in cart
+   */
   updateBadge(count) {
     // Update all possible cart badges
     const badges = [

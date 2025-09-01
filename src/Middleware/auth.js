@@ -1,11 +1,15 @@
 // src/Middleware/auth.js
-// Authentication middleware for JWT token verification
+// Authentication and authorization middleware for JWT token verification and role checking
+
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../../Config/config.js';
 import { pool } from '../../Config/ConnectionToBd.js';
 
 /**
  * Middleware to verify JWT token and authenticate user
+ * Attaches user info to req.user if valid
+ * Responds with 401 if token is missing, expired, or user not found
+ * Responds with 403 if token is invalid
  */
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -58,7 +62,9 @@ export const authenticateToken = async (req, res, next) => {
 
 /**
  * Middleware to check if user has required role(s)
- * Roles can be compared by role_id (number) or role_name (string)
+ * Accepts array of role names (string) or role IDs (number)
+ * Responds with 401 if not authenticated
+ * Responds with 403 if user lacks required role
  */
 export const requireRole = (roles) => {
   return (req, res, next) => {
