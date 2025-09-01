@@ -133,5 +133,13 @@ router.get("/:id", async (req, res) => {
 // Public pagination routes (no authentication required for catalog viewing)
 router.get('/paginated', EbookController.getPaginated);
 router.get('/search', EbookController.search);
+ 
 
+//manage to ebooks_status(new,used,donate)
+router.get('/new', authenticateToken, EbookController.getNew)
+router.get('/used', authenticateToken, EbookController.getUsed);
+router.get('/donate', authenticateToken, EbookController.getDonate);
+
+//defaut ebook_status
+router.get('/condition/:condition_id', authenticateToken, EbookController.getByCondition)
 export default router;

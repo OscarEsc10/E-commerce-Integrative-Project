@@ -81,5 +81,46 @@ export const EbookController = {
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
+  },
+
+  getNew: async (req, res) => {
+    try {
+      const ebooks = await Ebook.findByCondition(1); // 1 = new
+      res.json({ success: true, ebooks: ebooks || [] });
+    } catch (err) {
+      console.error("Error al obtener ebooks nuevos", err);
+      res.json({ success: true, ebooks: [] });
+    }
+  },
+
+  getUsed: async (req, res) => {
+    try {
+      const ebooks = await Ebook.findByCondition(2); // 2 = used
+      res.json({ success: true, ebooks: ebooks || [] });
+    } catch (err) {
+      console.error("Error al obtener ebooks usados", err);
+      res.json({ success: true, ebooks: [] });
+    }
+  },
+
+  getDonate: async (req, res) => {
+    try {
+      const ebooks = await Ebook.findByCondition(3); // 3 = donate
+      res.json({ success: true, ebooks: ebooks || [] });
+    } catch (err) {
+      console.error("Error al obtener ebooks de donación", err);
+      res.json({ success: true, ebooks: [] });
+    }
+  },
+
+  getByCondition: async (req, res) => {
+    try {
+      const { condition_id } = req.params;
+      const ebooks = await Ebook.findByCondition(condition_id);
+      res.json({ success: true, ebooks: ebooks || [] });
+    } catch (err) {
+      console.error("Error al obtener ebooks por condición", err);
+      res.json({ success: true, ebooks: [] });
+    }
   }
 };

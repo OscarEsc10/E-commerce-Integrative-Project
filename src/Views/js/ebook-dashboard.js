@@ -27,10 +27,19 @@ class EbooksDashboard {
       await this.loadEbooks();
       this.attachStaticListeners();
       this.toggleFeaturesByRole();
-    } catch (err) {
+        } catch (err) {
       console.error('EbooksDashboard init error:', err);
       this.showError('Error al inicializar dashboard.');
+        }
+
+    this.conditionSelect = document.getElementById('ebook-condition');
+      if (this.conditionSelect) {
+      this.conditionSelect.addEventListener('change', async () => {
+      this.currentPage = 1;
+      await this.loadEbooks();
+      });
     }
+
   }
 
   setupNavbar() {
@@ -76,76 +85,90 @@ class EbooksDashboard {
     }
   }
 
-  async loadEbooks(searchTerm = '') {
-    try {
-      this.showSpinner(true);
+  async loadEbooks(searchTerm = '', condition = '') {
+  try {
+    this.showSpinner(true);
 
-      const searchInput = document.getElementById('search-input');
-      const categorySelect = document.getElementById('filter-category');
+    const searchInput = document.getElementById('search-input');
+    const categorySelect = document.getElementById('filter-category');
 
-      const search = searchTerm || (searchInput ? searchInput.value.trim() : '');
-      const category = categorySelect ? categorySelect.value : '';
+    const search = searchTerm || (searchInput ? searchInput.value.trim() : '');
+    const category = categorySelect ? categorySelect.value : '';
 
-      // Aseguramos valores por defecto
-      const page = this.currentPage || 1;
-      const limit = this.itemsPerPage || 6;
+    const page = this.currentPage || 1;
+    const limit = this.itemsPerPage || 6;
 
-      let apiUrl = `http://localhost:3000/api/ebooks/paginated?page=${page}&limit=${limit}`;
+    // Endpoint por condición o general
+    let apiUrl = '';
+    if (condition) {
+      apiUrl = `http://localhost:3000/api/ebooks/condition/${condition}`;
+    } else {
+      apiUrl = `http://localhost:3000/api/ebooks/paginated?page=${page}&limit=${limit}`;
       if (search) apiUrl += `&search=${encodeURIComponent(search)}`;
       if (category) apiUrl += `&category=${category}`;
-
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-
-      if (data.success) {
-        this.ebooks = data.data || [];
-        this.totalPages = data.pagination?.totalPages || 1;
-        this.totalItems = data.pagination?.totalItems || this.ebooks.length;
-
-        this.renderEbooks(this.ebooks);
-        this.renderPagination();
-      } else {
-        throw new Error(data.message || 'Error al cargar ebooks');
-      }
-    } catch (err) {
-      console.error('Error cargando ebooks:', err);
-      this.showError('No se pudieron cargar los ebooks: ' + err.message);
-    } finally {
-      this.showSpinner(false);
     }
-  }
 
-  renderEbooks(ebooks) {
-    const container = document.getElementById('ebooksContainer');
-    if (!container) return;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
 
-    container.innerHTML = '';
-    if (ebooks.length === 0) {
-      container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay ebooks disponibles</div>';
+    if (!data.success) throw new Error(data.message || 'Error cargando ebooks');
+
+    const ebooks = data.ebooks || data.data || [];
+
+    // Separar ebooks de donación si condition = 3
+    if (condition === '3') {
+      this.renderEbooks(ebooks, '3');
       return;
     }
 
-    ebooks.forEach(ebook => {
-      const price = parseFloat(ebook.price) || 0;
-      const card = document.createElement('div');
-      card.className = 'bg-white shadow-lg rounded-xl p-4 flex flex-col justify-between hover:shadow-xl transition-shadow';
-      card.innerHTML = `
-        <div>
-          <h4 class="font-semibold text-lg mb-2">${ebook.name}</h4>
-          <p class="text-gray-600 text-sm mb-4">${ebook.description || ''}</p>
-          <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-2">
-            ${ebook.category_name || 'Sin categoría'}
-          </span>
-        </div>
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="font-bold text-indigo-600 text-lg">${price > 0 ? `$${price.toFixed(2)}` : 'Gratis'}</span>
-          </div>
-        </div>
+    // Guardar para paginación si no es donación
+    this.ebooks = ebooks;
+    this.totalPages = data.pagination?.totalPages || 1;
+    this.totalItems = data.pagination?.totalItems || ebooks.length;
+
+    this.renderEbooks(this.ebooks);
+    this.renderPagination();
+
+  } catch (err) {
+    console.error('Error cargando ebooks:', err);
+    this.showError('No se pudieron cargar los ebooks: ' + err.message);
+  } finally {
+    this.showSpinner(false);
+  }
+}
+
+renderEbooks(ebooks, condition = '') {
+  const container = condition === '3'
+    ? document.getElementById('donate-grid')
+    : document.getElementById('ebooksContainer');
+
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (ebooks.length === 0) {
+    container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay ebooks disponibles</div>';
+    return;
+  }
+
+  ebooks.forEach(e => {
+    const price = parseFloat(e.price) || 0;
+    const card = document.createElement('div');
+    card.className = 'bg-white shadow-lg rounded-xl p-4 flex flex-col justify-between hover:shadow-xl transition-shadow';
+    card.innerHTML = `
+      <div>
+        <h4 class="font-semibold text-lg mb-2">${e.name}</h4>
+        <p class="text-gray-600 text-sm mb-4">${e.description || ''}</p>
+        <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-2">
+          ${e.category_name || 'Sin categoría'}
+        </span>
+      </div>
+      <div>
+        <span class="font-bold text-indigo-600 text-lg">${price > 0 ? `$${price.toFixed(2)}` : 'Gratis'}</span>
+      </div>
       `;
       container.appendChild(card);
-    });
-  }
+      });
+    }
 
   renderPagination() {
     const paginationContainer = document.getElementById('pagination');
