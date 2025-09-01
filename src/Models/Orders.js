@@ -49,9 +49,11 @@ export class Order {
   // Obtener todas las órdenes de un usuario
   static async findByUserId(user_id) {
     const query = `
-      SELECT * FROM orders
-      WHERE user_id = $1
-      ORDER BY created_at DESC
+      SELECT o.*, s.name AS status_name
+      FROM orders o
+      JOIN orders_status s ON o.status_id = s.orderstatus_id
+      WHERE o.user_id = $1
+      ORDER BY o.created_at DESC
     `;
     const { rows } = await pool.query(query, [user_id]);
     return rows;
