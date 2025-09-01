@@ -119,4 +119,5 @@ export class Order {
     `, [sellerId]);
     return rows;
   }
+
 }

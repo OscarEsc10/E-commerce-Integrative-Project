@@ -5,8 +5,14 @@ import { authenticateToken } from '../Middleware/auth.js';
 const router = express.Router();
 
 router.get('/', authenticateToken, OrderController.getAll);
+//seller
 router.get('/seller', authenticateToken, OrderController.getBySeller);
+// rutas customer
+router.get('/customer', authenticateToken, OrderController.getByCustomer);
+//
 router.get('/:id', authenticateToken, OrderController.getById);
+
+//
 router.post('/', authenticateToken, OrderController.create);
 
 

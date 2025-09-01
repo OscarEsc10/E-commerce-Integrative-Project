@@ -8,6 +8,7 @@ import { renderAdminReports } from './admin-reports.js';
 import { renderAdminEbooks } from './admin-ebooks.js';
 import { renderSellerSalesSummary } from './seller-sales.js';
 import { renderSellerOrders } from './seller-orders.js';
+import { renderCustomerOrders } from './customer-orders.js';
 const ROLE_MAP = { 1: 'admin', 2: 'seller', 3: 'customer' };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -102,7 +103,7 @@ function setupUIForRole(user) {
   [
     'btn-manage-users','btn-manage-sellers','btn-reports','btn-manage-ebooks',
     'btn-manage-orders','btn-sales-summary','btn-view-catalog','btn-request-seller',
-    'btn-become-seller','btn-cart','btn-view-profile','btn-request-seller','btn-manage-sellers'
+    'btn-become-seller','btn-cart','btn-view-profile','btn-request-seller','btn-manage-sellers', 'btn-view-orders'
   ].forEach(id => hide(id));
 
   // Perfil siempre visible
@@ -130,6 +131,7 @@ function setupUIForRole(user) {
     show('btn-view-catalog');
     show('btn-become-seller');
     show('btn-request-seller');
+    show('btn-view-orders');
     show('btn-cart');
   }
 }
@@ -179,6 +181,11 @@ function attachEventListeners(user) {
   on('btn-manage-sellers', async () => {
     loadSection('sellers-section');
     await renderManageSellers();
+  });
+
+  on('btn-view-orders', async() => {
+    loadSection('customer-orders-section');
+    await renderCustomerOrders();
   });
 
   // Convertirme en vendedor (abre formulario en dashboard)

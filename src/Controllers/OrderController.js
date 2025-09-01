@@ -96,5 +96,18 @@
       } catch (err) {
       res.status(500).json({ success: false, message: 'Error obteniendo órdenes del seller', error: err.message });
     }
+  },
+
+  // Cliente: obtiene todas las órdenes del user_id
+    getByCustomer: async (req, res) => {
+      try {
+      const user_id = req.user?.user_id;
+      if (!user_id) return res.status(400).json({ success: false, message: 'Falta customerId' });
+
+      const orders = await Order.findByUserId(user_id); // Reutilizamos findByUserId
+      res.json({ success: true, orders });
+      } catch (error) {
+      res.status(500).json({ success: false, message: 'Error obteniendo órdenes del cliente', error: error.message });
+    }
   }
 };
