@@ -106,17 +106,17 @@ export class Order {
       return rows[0];
     }
 
-    static async findBySellerId(sellerId) {
+   static async findByCreatorId(sellerId) {
   const { rows } = await pool.query(`
-    SELECT o.*, b.title AS ebook_name, b.creator_id
-    FROM orders o
-    JOIN order_items oi ON o.id = oi.order_id
-    JOIN ebooks b ON oi.product_id = b.id
-    WHERE b.creator_id = $1
-    ORDER BY o.created_at DESC
-  `, [sellerId]);
-
+      SELECT o.order_id, o.user_id, o.total, o.status_id, o.created_at, s.name AS status_name
+      FROM orders o
+      JOIN order_items oi ON o.order_id = oi.order_id
+      JOIN ebooks e ON oi.product_id = e.ebook_id
+      JOIN orders_status s ON o.status_id = s.orderstatus_id
+      WHERE e.creator_id = $1
+      GROUP BY o.order_id, s.name
+      ORDER BY o.created_at DESC
+    `, [sellerId]);
     return rows;
   }
-
 }

@@ -86,14 +86,15 @@
     }
   },
   // Obtener órdenes de los libros de un seller
-getBySeller: async (req, res) => {
-  try {
-    const sellerId = req.params.id; // id del usuario seller
-    if (!sellerId) return res.status(400).json({ success: false, message: 'Falta sellerId' });
-    const orders = await Order.findBySellerId(sellerId);
-    res.json({ success: true, orders });
-    } catch (error) {
-    res.status(500).json({ success: false, message: 'Error obteniendo órdenes del seller', error: error.message });
+    getBySeller: async (req, res) => {
+    try {
+      const sellerId = req.user?.user_id;
+      if (!sellerId) return res.status(400).json({ success: false, message: 'Falta sellerId' });
+
+      const orders = await Order.findByCreatorId(sellerId); 
+      res.json({ success: true, orders });
+      } catch (err) {
+      res.status(500).json({ success: false, message: 'Error obteniendo órdenes del seller', error: err.message });
     }
   }
 };

@@ -121,7 +121,7 @@ function setupUIForRole(user) {
   if (role === 'seller') {
     show('btn-view-catalog');
     show('btn-manage-ebooks');
-    show('btn-manage-orders');
+    show('btn-manage-orders-seller');
     show('btn-sales-summary');
     show('btn-cart'); // corresponde a id="btn-cart" en el HTML
   }
@@ -151,9 +151,14 @@ function attachEventListeners(user) {
     await renderAdminEbooks();
   }); // admins/sellers van a la vista de ebooks dedicada
 
-  on('btn-manage-orders-admin', async () => {
+  on('btn-manage-orders', async () => {
     loadSection('orders-section');
     await renderAdminOrders();
+  });
+
+  on('btn-manage-orders-seller', async () => {
+    loadSection('orders-section');
+    await renderSellerOrders();
   });
 
   on('btn-sales-summary', async () => {

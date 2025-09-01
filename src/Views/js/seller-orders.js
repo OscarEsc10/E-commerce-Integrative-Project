@@ -1,73 +1,54 @@
+import { apiClient } from './api.js';
 import { authManager } from './auth.js';
 import { escapeHtml } from './helpers.js';
-import { apiClient } from './api.js';
-
-const ordersSectionId = 'seller-orders-section';
-const ordersContentId = 'seller-orders-content';
 
 export async function renderSellerOrders() {
   const user = authManager.getUserData();
-  if (!user) {
-    alert('Usuario no identificado.');
-    return;
-  }
+  if (!user) return alert('Usuario no identificado');
 
-  const section = document.getElementById(ordersSectionId);
-  if (!section) return;
-
+  const section = document.getElementById('orders-section');
   section.classList.remove('hidden');
-
-  let content = document.getElementById(ordersContentId);
-  if (!content) {
-    content = document.createElement('div');
-    content.id = ordersContentId;
-    section.appendChild(content);
-  }
-
-  content.innerHTML = '<p>Cargando pedidos...</p>';
+  section.innerHTML = '<p>Cargando órdenes...</p>';
 
   try {
-    const data = await apiClient.makeRequest(`/api/orders/seller/${user.id}`, { method: 'GET' });
-    const orders = Array.isArray(data?.orders) ? data.orders : [];
+    const user = authManager.getUserData();
+    const sellerId = user?.user_id;
+    const data = await apiClient.makeRequest(`/orders/seller`, { method: 'GET' });
+    const orders = data?.orders || [];
 
     if (!orders.length) {
-      content.innerHTML = '<p>No hay pedidos para tus libros.</p>';
+      section.innerHTML = '<p>No tienes órdenes registradas 🚀</p>';
       return;
     }
 
-    const rowsHtml = orders.map(o => {
-      const name = escapeHtml(o.ebook_name ?? 'Sin título');
-      const total = Number(o.total ?? 0);
-      const date = o.created_at ? new Date(o.created_at).toLocaleDateString('es-ES') : '-';
-      const status = o.status_id; // opcional: mapear a texto
-      return `
-        <tr>
-          <td>${name}</td>
-          <td>$${total.toFixed(2)}</td>
-          <td>${status}</td>
-          <td>${date}</td>
-        </tr>
-      `;
-    }).join('');
+    const rowsHtml = orders.map(o => `
+      <tr>
+        <td>${escapeHtml(o.order_id)}</td>
+        <td>${escapeHtml(o.status_name)}</td>
+        <td>${new Date(o.created_at).toLocaleDateString()}</td>
+        <td>$${Number(o.total).toFixed(2)}</td>
+      </tr>
+    `).join('');
 
-    content.innerHTML = `
-      <h3>Pedidos de tus libros</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Ebook</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
+    section.innerHTML = `
+      <h3 class="text-2xl font-bold mb-4">Mis Órdenes</h3>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border rounded-lg overflow-hidden text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2">ID</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Fecha</th>
+          <th class="px-4 py-2">Total</th>
+        </tr>
+      </thead>
+      <tbody>
           ${rowsHtml}
         </tbody>
       </table>
     `;
   } catch (err) {
-    console.error(err);
-    content.innerHTML = '<p>Error cargando pedidos.</p>';
+    console.error('Error cargando órdenes del seller:', err);
+    section.innerHTML = '<p>Error cargando órdenes. Revisa la consola.</p>';
   }
 }
