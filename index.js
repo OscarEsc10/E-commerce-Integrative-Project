@@ -69,7 +69,8 @@ app.use("*", (req, res) =>
 
 app.use((error, req, res, next) => {
   console.error("Global error:", error);
-  res.status(500).json({ success: false, message: "Internal server error" });
+  console.error("Error stack:", error.stack);
+  res.status(500).json({ success: false, message: "Internal server error", error: error.message });
 });
 
 // Start server

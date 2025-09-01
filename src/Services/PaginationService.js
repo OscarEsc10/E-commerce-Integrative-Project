@@ -88,34 +88,76 @@ export class PaginationService {
    * Specific pagination for ebooks with category join
    */
   static async paginateEbooks({ page = 1, limit = 10, searchTerm = '', category = '' }) {
-    const options = {
-      table: 'ebooks e',
-      page,
-      limit,
-      searchTerm,
-      searchFields: ['e.name', 'e.description', 'c.name'],
-      orderBy: 'e.created_at',
-      orderDirection: 'DESC',
-      joinClause: 'LEFT JOIN categories c ON e.category_id = c.category_id',
-      selectFields: 'e.*, c.name as category_name'
-    };
+    const offset = (page - 1) * limit;
+    
+    // Build search condition
+    let searchCondition = '';
+    let searchParams = [];
+    let paramIndex = 1;
+
+    const conditions = [];
+
+    // Add search condition if provided
+    if (searchTerm) {
+      const searchConditions = ['e.name', 'e.description', 'c.name'].map(field => {
+        searchParams.push(`%${searchTerm}%`);
+        return `${field} ILIKE $${paramIndex++}`;
+      });
+      conditions.push(`(${searchConditions.join(' OR ')})`);
+    }
 
     // Add category filter if provided
     if (category) {
-      const categoryCondition = `e.category_id = $${options.searchTerm ? options.searchFields.length + 1 : 1}`;
-      
-      if (options.searchTerm) {
-        // If there's already a search condition, add category with AND
-        options.whereClause = `WHERE (${options.searchFields.map((field, index) => `${field} ILIKE $${index + 1}`).join(' OR ')}) AND ${categoryCondition}`;
-        options.additionalParams = [category];
-      } else {
-        // If no search term, just filter by category
-        options.whereClause = `WHERE ${categoryCondition}`;
-        options.additionalParams = [category];
-      }
+      searchParams.push(category);
+      conditions.push(`e.category_id = $${paramIndex++}`);
     }
 
-    return this.paginateWithCustomWhere(options);
+    if (conditions.length > 0) {
+      searchCondition = `WHERE ${conditions.join(' AND ')}`;
+    }
+
+    // Count total items
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM ebooks e
+      LEFT JOIN categories c ON e.category_id = c.category_id
+      ${searchCondition}
+    `;
+    
+    const countResult = await pool.query(countQuery, searchParams);
+    const total = parseInt(countResult.rows[0].total);
+
+    // Get paginated items
+    const dataQuery = `
+      SELECT e.*, c.name as category_name
+      FROM ebooks e
+      LEFT JOIN categories c ON e.category_id = c.category_id
+      ${searchCondition}
+      ORDER BY e.created_at DESC
+      LIMIT $${paramIndex++} OFFSET $${paramIndex}
+    `;
+
+    const dataParams = [...searchParams, limit, offset];
+    const dataResult = await pool.query(dataQuery, dataParams);
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return {
+      data: dataResult.rows,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        total: total,
+        itemsPerPage: limit,
+        hasNextPage,
+        hasPrevPage,
+        nextPage: hasNextPage ? page + 1 : null,
+        prevPage: hasPrevPage ? page - 1 : null
+      }
+    };
   }
 
   /**

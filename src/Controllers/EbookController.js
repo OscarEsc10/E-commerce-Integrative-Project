@@ -1,5 +1,6 @@
 import { Ebook } from '../Models/Ebook.js';
 import { PaginationService } from '../Services/PaginationService.js';
+import { pool } from '../../Config/ConnectionToBd.js';
 
 export const EbookController = {
   create: async (req, res) => {
@@ -56,11 +57,89 @@ export const EbookController = {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 12;
       const searchTerm = req.query.search || '';
-      const category = req.query.category || '';
+      const category_id = req.query.category_id || '';
 
-      const result = await PaginationService.paginateEbooks({ page, limit, searchTerm, category });
+      console.log('Pagination request:', { page, limit, searchTerm, category_id });
+
+      // Import pool here to avoid circular dependency issues
+      const { pool } = await import('../../Config/ConnectionToBd.js');
+      const offset = (page - 1) * limit;
+      
+      // Build search condition
+      let searchCondition = '';
+      let searchParams = [];
+      let paramIndex = 1;
+
+      const conditions = [];
+
+      // Add search condition if provided
+      if (searchTerm) {
+        const searchConditions = ['e.name', 'e.description', 'c.name'].map(field => {
+          searchParams.push(`%${searchTerm}%`);
+          return `${field} ILIKE $${paramIndex++}`;
+        });
+        conditions.push(`(${searchConditions.join(' OR ')})`);
+      }
+
+      // Add category filter if provided
+      if (category_id) {
+        searchParams.push(category_id);
+        conditions.push(`e.category_id = $${paramIndex++}`);
+      }
+
+      if (conditions.length > 0) {
+        searchCondition = `WHERE ${conditions.join(' AND ')}`;
+      }
+
+      // Count total items
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM ebooks e
+        LEFT JOIN categories c ON e.category_id = c.category_id
+        ${searchCondition}
+      `;
+      
+      console.log('Count query:', countQuery, 'Params:', searchParams);
+      const countResult = await pool.query(countQuery, searchParams);
+      const total = parseInt(countResult.rows[0].total);
+
+      // Get paginated items
+      const dataQuery = `
+        SELECT e.*, c.name as category_name
+        FROM ebooks e
+        LEFT JOIN categories c ON e.category_id = c.category_id
+        ${searchCondition}
+        ORDER BY e.ebook_id DESC
+        LIMIT $${paramIndex++} OFFSET $${paramIndex}
+      `;
+
+      const dataParams = [...searchParams, limit, offset];
+      console.log('Data query:', dataQuery, 'Params:', dataParams);
+      const dataResult = await pool.query(dataQuery, dataParams);
+
+      // Calculate pagination metadata
+      const totalPages = Math.ceil(total / limit);
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
+
+      const result = {
+        data: dataResult.rows,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          total: total,
+          itemsPerPage: limit,
+          hasNextPage,
+          hasPrevPage,
+          nextPage: hasNextPage ? page + 1 : null,
+          prevPage: hasPrevPage ? page - 1 : null
+        }
+      };
+
+      console.log('Pagination result:', result);
       res.json({ success: true, ...result });
     } catch (error) {
+      console.error('Pagination error:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -82,4 +161,5 @@ export const EbookController = {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
 };

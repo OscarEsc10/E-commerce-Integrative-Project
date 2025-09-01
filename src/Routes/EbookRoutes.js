@@ -113,6 +113,10 @@ router.delete('/:id', authenticateToken, requireRole(['admin', 'seller']), async
   }
 });
 
+// Public pagination routes (no authentication required for catalog viewing)
+router.get('/paginated', EbookController.getPaginated);
+router.get('/search', EbookController.search);
+
 // backend - ebooks.routes.js
 router.get("/:id", async (req, res) => {
   try {
@@ -129,9 +133,5 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Error al obtener ebook" });
   }
 });
-
-// Public pagination routes (no authentication required for catalog viewing)
-router.get('/paginated', EbookController.getPaginated);
-router.get('/search', EbookController.search);
 
 export default router;

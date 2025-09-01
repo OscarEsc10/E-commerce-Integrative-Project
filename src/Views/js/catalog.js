@@ -19,7 +19,7 @@ class EbookCatalog {
 
     initializeElements() {
         this.searchInput = document.getElementById('searchInput');
-        this.searchBtn = document.getElementById('searchBtn');
+        this.searchBtn = null; // No search button in new design
         this.clearBtn = document.getElementById('clearBtn');
         this.categoryFilter = document.getElementById('categoryFilter');
         this.ebooksGrid = document.getElementById('ebooksGrid');
@@ -32,11 +32,24 @@ class EbookCatalog {
     }
 
     bindEvents() {
-        this.searchBtn.addEventListener('click', () => this.performSearch());
-        this.clearBtn.addEventListener('click', () => this.clearSearch());
-        this.searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performSearch();
-        });
+        // Search button removed in new design, use input events instead
+        if (this.clearBtn) {
+            this.clearBtn.addEventListener('click', () => this.clearSearch());
+        }
+        
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (e) => {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => this.performSearch(), 300);
+            });
+            
+            this.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(this.searchTimeout);
+                    this.performSearch();
+                }
+            });
+        }
         
         if (this.categoryFilter) {
             this.categoryFilter.addEventListener('change', () => this.performSearch());
@@ -47,8 +60,7 @@ class EbookCatalog {
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                localStorage.clear();
-                sessionStorage.clear();
+                localStorage.removeItem('userData');
                 window.location.href = '/login';
             });
         }
@@ -68,40 +80,25 @@ class EbookCatalog {
         this.showLoading();
         
         try {
-            console.log('Catalog: Loading ebooks...');
             const params = new URLSearchParams({
                 page: this.currentPage,
-                limit: this.itemsPerPage
+                limit: this.itemsPerPage,
+                search: this.searchTerm,
+                category_id: this.selectedCategory
             });
             
-            if (this.searchTerm) {
-                params.append('search', this.searchTerm);
-            }
             
-            if (this.selectedCategory) {
-                params.append('category_id', this.selectedCategory);
-            }
-            
-            const url = `/api/ebooks/paginated?${params.toString()}`;
-            console.log('Catalog: Fetching from URL:', url);
-            
-            const response = await fetch(url);
-            console.log('Catalog: Response status:', response.status);
-            
+            const response = await fetch(`/api/ebooks/paginated?${params}`);
             const data = await response.json();
-            console.log('Catalog: Response data:', data);
+            
             
             if (data.success) {
-                const ebooks = data.data || data.ebooks || [];
-                const pagination = data.pagination || {};
+                const ebooks = data.data || [];
+                this.totalItems = data.pagination ? data.pagination.total : ebooks.length;
+                this.totalPages = data.pagination ? data.pagination.totalPages : 1;
                 
-                this.totalPages = pagination.totalPages || Math.ceil(ebooks.length / this.itemsPerPage) || 1;
-                this.totalItems = pagination.total || ebooks.length;
-                
-                console.log('Catalog: Ebooks found:', ebooks.length, 'Total pages:', this.totalPages);
                 this.displayEbooks(ebooks);
                 this.updateResultsCount(this.totalItems);
-                // Always render pagination, even if only one page
                 this.renderPagination();
             } else {
                 console.error('Catalog: API error:', data.message);
@@ -115,8 +112,34 @@ class EbookCatalog {
         }
     }
 
+    createEbookCard(ebook, isLoggedIn = false) {
+        const price = parseFloat(ebook.price || 0);
+        return `
+            <div class="ebook-item">
+                <div class="card h-100 shadow-sm ebook-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${ebook.name || ebook.title || 'Sin título'}</h5>
+                        <p class="card-text text-muted small">${ebook.description || 'Sin descripción'}</p>
+                        <div class="mb-2">
+                            <span class="category-badge">${ebook.category_name || ebook.category || 'Sin categoría'}</span>
+                        </div>
+                        <div class="price-display mb-3">
+                            <span class="price-badge">${price > 0 ? `$${price.toFixed(2)}` : 'Gratis'}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <button class="btn btn-primary w-100" onclick="handlePurchase(${ebook.ebook_id}, '${ebook.name || ebook.title}', ${price})">
+                            <i class="fas fa-shopping-cart me-2"></i>Comprar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     displayEbooks(ebooks) {
-        console.log('Catalog: Displaying ebooks:', ebooks.length);
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const isLoggedIn = userData && (userData.user_id || userData.id);
         
         if (ebooks.length === 0) {
             this.ebooksGrid.innerHTML = `
@@ -129,25 +152,7 @@ class EbookCatalog {
             return;
         }
 
-        this.ebooksGrid.innerHTML = ebooks.map(ebook => `
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm ebook-card">
-                    <div class="card-body">
-                        <h5 class="card-title">${ebook.name || ebook.title || 'Sin título'}</h5>
-                        <p class="card-text text-muted small">${ebook.description || 'Sin descripción'}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="category-badge">${ebook.category_name || ebook.category || 'Sin categoría'}</span>
-                            <span class="price-badge">$${parseFloat(ebook.price || 0).toFixed(2)}</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <button class="btn btn-primary btn-sm w-100" onclick="addToCart(${ebook.ebook_id || ebook.id})">
-                            <i class="fas fa-cart-plus me-1"></i>Agregar al Carrito
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        this.ebooksGrid.innerHTML = ebooks.map(ebook => this.createEbookCard(ebook, isLoggedIn)).join('');
     }
 
     updateResultsCount(count) {
@@ -169,7 +174,7 @@ class EbookCatalog {
     performSearch() {
         this.searchTerm = this.searchInput.value.trim();
         this.selectedCategory = this.categoryFilter ? this.categoryFilter.value : '';
-        this.currentPage = 1; // Reset to first page on new search
+        this.currentPage = 1;
         this.loadEbooks();
     }
 
@@ -178,7 +183,7 @@ class EbookCatalog {
         this.searchTerm = '';
         this.selectedCategory = '';
         if (this.categoryFilter) this.categoryFilter.value = '';
-        this.currentPage = 1; // Reset to first page
+        this.currentPage = 1;
         this.loadEbooks();
     }
 
@@ -256,17 +261,14 @@ class EbookCatalog {
         if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
             this.currentPage = page;
             this.loadEbooks();
-            // No scrolling to prevent interface movement
         }
     }
 
     renderPagination() {
         if (!this.paginationNav) return;
         
-        // Always show pagination, even for single page
         if (this.totalPages <= 1) {
-            // Still show pagination structure for single page
-            const singlePageHTML = `
+            this.paginationNav.innerHTML = `
                 <li class="page-item disabled">
                     <span class="page-link"><i class="fas fa-chevron-left"></i> Anterior</span>
                 </li>
@@ -277,7 +279,6 @@ class EbookCatalog {
                     <span class="page-link">Siguiente <i class="fas fa-chevron-right"></i></span>
                 </li>
             `;
-            this.paginationNav.innerHTML = `<ul class="pagination justify-content-center">${singlePageHTML}</ul>`;
             
             if (this.paginationInfo) {
                 this.paginationInfo.textContent = this.totalItems > 0 ? 
@@ -370,8 +371,6 @@ class EbookCatalog {
 // Cart functionality
 async function addToCart(ebookId) {
     try {
-        console.log('Adding ebook to cart:', ebookId);
-        
         // Get user data from localStorage
         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
         const userId = userData.user_id || userData.id;
@@ -459,7 +458,165 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Initialize when DOM is loaded
+// Handle purchase button click
+function handlePurchase(ebookId, ebookName, price) {
+    // Check if user is logged in
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const isLoggedIn = userData && (userData.user_id || userData.id);
+    
+    if (!isLoggedIn) {
+        // Store return URL and redirect to login
+        localStorage.setItem('returnUrl', '/catalog');
+        showToast('Debes iniciar sesión para realizar compras', 'info');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+        return;
+    }
+    
+    // User is logged in, redirect to checkout with item data
+    const purchaseData = {
+        items: [{
+            ebookId: ebookId,
+            ebookName: ebookName,
+            price: price,
+            quantity: 1
+        }]
+    };
+    
+    localStorage.setItem('checkoutData', JSON.stringify(purchaseData));
+    window.location.href = '/checkout';
+}
+
+// Add item to cart
+function addToCart(ebookId, ebookName, price) {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Check if item already exists
+    const existingItem = cart.find(item => item.ebookId === ebookId);
+    if (existingItem) {
+        showToast('Este ebook ya está en tu carrito', 'warning');
+        return;
+    }
+    
+    // Add new item
+    cart.push({
+        ebookId: ebookId,
+        ebookName: ebookName,
+        price: price,
+        quantity: 1
+    });
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    showToast('Ebook agregado al carrito', 'success');
+}
+
+// Update cart count display
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const cartCount = cart.length;
+    const cartBadge = document.getElementById('cart-count');
+    const cartToggle = document.getElementById('cart-toggle');
+    
+    if (cartBadge) {
+        cartBadge.textContent = cartCount;
+        cartBadge.style.display = cartCount > 0 ? 'inline' : 'none';
+    }
+    
+    if (cartToggle) {
+        cartToggle.style.display = 'flex';
+    }
+}
+
+// Clear cart
+function clearCart() {
+    localStorage.removeItem('cart');
+    updateCartCount();
+    showToast('Carrito vaciado', 'info');
+    
+    // Hide cart dropdown if open
+    const cartDropdown = document.getElementById('cart-dropdown');
+    if (cartDropdown) {
+        cartDropdown.classList.add('hidden');
+    }
+}
+
+// Toggle cart dropdown
+function toggleCart() {
+    const cartDropdown = document.getElementById('cart-dropdown');
+    if (cartDropdown) {
+        cartDropdown.classList.toggle('hidden');
+        if (!cartDropdown.classList.contains('hidden')) {
+            renderCartItems();
+        }
+    }
+}
+
+// Render cart items in dropdown
+function renderCartItems() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+    
+    if (!cartItems) return;
+    
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="text-center text-gray-500 py-4">Carrito vacío</div>';
+        if (cartTotal) cartTotal.textContent = '$0.00';
+        return;
+    }
+    
+    let total = 0;
+    cartItems.innerHTML = cart.map(item => {
+        total += item.price;
+        return `
+            <div class="cart-item flex justify-between items-center py-2 border-b">
+                <div>
+                    <h6 class="font-medium text-sm">${item.ebookName}</h6>
+                    <span class="text-xs text-gray-500">$${item.price.toFixed(2)}</span>
+                </div>
+                <button onclick="removeFromCart(${item.ebookId})" class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    }).join('');
+    
+    if (cartTotal) cartTotal.textContent = `$${total.toFixed(2)}`;
+}
+
+// Remove item from cart
+function removeFromCart(ebookId) {
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart = cart.filter(item => item.ebookId !== ebookId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    renderCartItems();
+    showToast('Ebook removido del carrito', 'info');
+}
+
+// Proceed to checkout
+function proceedToCheckout() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (cart.length === 0) {
+        showToast('Tu carrito está vacío', 'warning');
+        return;
+    }
+    
+    localStorage.setItem('checkoutData', JSON.stringify(cart));
+    window.location.href = '/checkout';
+}
+
+// Initialize catalog when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.catalogInstance = new EbookCatalog();
+    window.catalog = new EbookCatalog();
+    
+    // Initialize cart for logged users
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const isLoggedIn = userData && (userData.user_id || userData.id);
+    
+    if (isLoggedIn) {
+        updateCartCount();
+    }
 });

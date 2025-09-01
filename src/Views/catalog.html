@@ -36,34 +36,74 @@
         </div>
     </nav>
 
+    <!-- Cart Toggle Button (Only for logged users) -->
+    <div id="cart-toggle" class="cart-toggle-container" style="display: none;">
+        <button class="cart-toggle-btn" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count" class="cart-badge">0</span>
+        </button>
+        
+        <!-- Cart Dropdown -->
+        <div id="cart-dropdown" class="cart-dropdown hidden">
+            <div class="cart-header">
+                <h5 class="cart-title">Mi Carrito</h5>
+                <button class="clear-cart-btn" onclick="clearCart()" title="Vaciar carrito">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div id="cart-items" class="cart-items">
+                <!-- Cart items will be rendered here -->
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total: <span id="cart-total">$0.00</span></strong>
+                </div>
+                <button class="checkout-btn" onclick="proceedToCheckout()">
+                    <i class="fas fa-credit-card me-2"></i>Pagar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="search-container">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-12">
                     <div class="card shadow-lg border-0">
                         <div class="card-body p-4">
-                            <h3 class="text-center mb-4">
-                                <i class="fas fa-search me-2"></i>Buscar Ebooks
-                            </h3>
-                            <div class="row g-4 search-row">
-                                <div class="col-lg-5 col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" id="searchInput" class="form-control" 
-                                               placeholder="Buscar por título, descripción...">
-                                        <button class="btn btn-primary px-4" type="button" id="searchBtn">
-                                            <i class="fas fa-search"></i>
-                                        </button>
+                            <div class="catalog-header">
+                                <div class="header-content">
+                                    <h2 class="catalog-title">
+                                        <i class="fas fa-book-open"></i>
+                                        Catálogo de Ebooks
+                                    </h2>
+                                    <p class="catalog-description">Explora nuestra colección de libros digitales</p>
+                                </div>
+                            </div>
+                            
+                            <div class="search-filter-bar">
+                                <div class="search-section">
+                                    <div class="search-wrapper">
+                                        <div class="search-input-container">
+                                            <i class="fas fa-search search-icon-left"></i>
+                                            <input type="text" id="searchInput" class="search-input" 
+                                                   placeholder="Buscar ebooks por título, autor o descripción...">
+                                            <button class="clear-search-btn" type="button" id="clearBtn" title="Limpiar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-4 col-md-4">
-                                    <select id="categoryFilter" class="form-select">
-                                        <option value="">Todas las categorías</option>
-                                    </select>
-                                </div>
-                                <div class="col-lg-3 col-md-2">
-                                    <button class="btn btn-outline-secondary w-100 px-3" type="button" id="clearBtn">
-                                        <i class="fas fa-times me-1"></i>Limpiar
-                                    </button>
+                                
+                                <div class="filter-section">
+                                    <div class="filter-wrapper">
+                                        <div class="filter-container">
+                                            <i class="fas fa-filter filter-icon"></i>
+                                            <select id="categoryFilter" class="filter-select">
+                                                <option value="">Todas las categorías</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -82,32 +122,31 @@
                 </div>
             </div>
 
-            <!-- Ebooks Container with Fixed Height -->
+            <!-- Ebooks Container -->
             <div class="ebooks-container">
                 <!-- Loading Spinner -->
                 <div class="loading-spinner text-center py-5">
-                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-3 text-muted">Cargando ebooks...</p>
+                    <div class="simple-loader"></div>
                 </div>
 
                 <!-- Ebooks Grid -->
-                <div id="ebooksGrid" class="row g-4 justify-content-center">
+                <div id="ebooksGrid" class="ebooks-grid">
                     <!-- Ebooks will be loaded here -->
                 </div>
             </div>
-        </div>
-        
-        <!-- Fixed Pagination -->
-        <div class="pagination-container">
-            <nav aria-label="Navegación de páginas">
-                <ul class="pagination justify-content-center mb-2" id="paginationNav">
-                    <!-- Pagination will be loaded here -->
-                </ul>
-            </nav>
-            <div class="text-center">
-                <small class="text-muted" id="paginationInfo">Página 1 de 1</small>
+            
+            <!-- Pagination Container -->
+            <div class="pagination-wrapper">
+                <div class="pagination-container">
+                    <nav aria-label="Navegación de páginas">
+                        <ul class="pagination justify-content-center mb-2" id="paginationNav">
+                            <!-- Pagination will be loaded here -->
+                        </ul>
+                    </nav>
+                    <div class="text-center">
+                        <small class="text-muted" id="paginationInfo">Página 1 de 1</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

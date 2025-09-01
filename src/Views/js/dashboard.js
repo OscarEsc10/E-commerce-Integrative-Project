@@ -21,17 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initDashboard() {
   console.log('Dashboard initializing...');
   
-  // Forzar auth / redirect si no está autenticado
-  if (!authManager.requireAuth()) return;
-
-  // Inicializar UI desde authManager (pone nombre/rol si hay datos)
-  authManager.initializeUI();
-
-  // Obtener usuario local (podría venir con shape distinta)
-  const user = authManager.getUserData() || {};
-
-  // Navbar / welcome
-  updateNavbarUser(user);
+  try {
+    // Make dashboard public - no auth required
+    const user = authManager.getUserData() || {};
+    
+    // Navbar / welcome
+    updateNavbarUser(user);
 
   // Mostrar botones según rol
   setupUIForRole(user);
@@ -54,6 +49,10 @@ async function initDashboard() {
     authManager.initializeUI();
     loadFooterStats().catch(()=>{});
   }, 5 * 60 * 1000);
+  
+  } catch (error) {
+    console.error('Dashboard initialization error:', error);
+  }
 }
 
 /* ------------------------

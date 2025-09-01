@@ -16,8 +16,9 @@ const routes = {
   '/login': 'Login.html',
   '/register': 'register.html',
   '/dashboard': 'dashboard.html',
-  '/ebooks': 'ebooks-dashboard.html',
+  '/ebooks': 'catalog.html',
   '/catalog': 'catalog.html',
+  '/checkout': 'checkout.html',
   '/admin': 'admin/adminDashboard.html'
 };
 
@@ -39,7 +40,7 @@ const redirects = {
   '/Login.html': '/login',
   '/register.html': '/register',
   '/dashboard.html': '/dashboard',
-  '/ebooks-dashboard.html': '/ebooks',
+  '/ebooks-dashboard.html': '/catalog',
   '/catalog.html': '/catalog',
   '/admin/adminDashboard.html': '/admin'
 };
@@ -51,13 +52,6 @@ Object.entries(redirects).forEach(([oldRoute, newRoute]) => {
 });
 
 // Serve static assets
-router.get('/catalog', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Views/catalog.html'));
-});
-
-router.get('/checkout', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Views/checkout.html'));
-});
 
 router.use('/Assest', (req, res, next) => {
   const assetsPath = path.join(__dirname, '../../Assest');

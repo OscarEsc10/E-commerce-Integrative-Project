@@ -26,16 +26,21 @@ class CheckoutManager {
   }
 
   loadOrderItems() {
-    // Try to get items from URL params first
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemsParam = urlParams.get('items');
-    
-    if (itemsParam) {
+    // Load items from localStorage (set by catalog purchase)
+    const checkoutData = localStorage.getItem('checkoutData');
+    if (checkoutData) {
       try {
-        this.orderItems = JSON.parse(decodeURIComponent(itemsParam));
+        const data = JSON.parse(checkoutData);
+        this.orderItems = data.items || [];
+        localStorage.removeItem('checkoutData'); // Clear after loading
       } catch (err) {
-        console.error('Error parsing URL items:', err);
+        console.error('Error parsing checkout data:', err);
+        this.orderItems = [];
       }
+    } else {
+      // Fallback to cart items
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      this.orderItems = cart;
     }
 
     // Fallback to cart items
@@ -140,54 +145,77 @@ class CheckoutManager {
 
   async processPayment() {
     try {
-      this.showSpinner(true);
+      const formData = this.getFormData();
+      if (!this.validateForm(formData)) return;
 
-      // Validate form
-      if (!this.validateForm()) {
-        this.showSpinner(false);
+      this.showLoading(true);
+      
+      // Check if payment processing is enabled in backend
+      const paymentStatus = await this.checkPaymentStatus();
+      if (!paymentStatus.enabled) {
+        this.showError('El procesamiento de pagos está temporalmente deshabilitado');
+        this.showLoading(false);
         return;
       }
-
-      // Get form data
-      const paymentData = this.getFormData();
-
-      // Create order
-      const orderData = {
-        items: this.orderItems.map(item => ({
-          ebook_id: item.ebook_id,
-          quantity: item.quantity,
-          price: item.ebook_price || item.price || 0
-        })),
+      
+      const paymentData = {
+        payment_method: formData.paymentMethod,
+        card_number: formData.cardNumber,
+        expiry_date: formData.expiryDate,
+        cvv: formData.cvv,
+        cardholder_name: formData.cardholderName,
+        billing_address: formData.billingAddress,
+        items: this.orderItems,
         total: this.total,
-        payment_method: paymentData.paymentMethod,
-        payment_details: paymentData
+        user_id: authManager.getUserData()?.user_id || authManager.getUserData()?.id
       };
 
-      const response = await apiClient.makeRequest('/orders', {
+      const response = await fetch('/api/payments/process', {
         method: 'POST',
-        body: JSON.stringify(orderData)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(paymentData)
       });
-
-      if (response.success) {
-        // Clear cart
-        await cartManager.clearCart();
-        
-        // Show success and redirect
-        alert(`¡Pago procesado exitosamente! Orden #${response.order?.order_id || 'N/A'}`);
-        window.location.href = '/dashboard';
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        this.showSuccess('¡Pago procesado exitosamente!');
+        // Clear cart and redirect
+        localStorage.removeItem('cart');
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       } else {
-        throw new Error(response.message || 'Error al procesar el pago');
+        this.showError(result.message || 'Error al procesar el pago');
       }
     } catch (err) {
-      console.error('Payment error:', err);
-      alert('Error al procesar el pago: ' + err.message);
+      console.error('Payment processing error:', err);
+      this.showError('Error de conexión al procesar el pago');
     } finally {
-      this.showSpinner(false);
+      this.showLoading(false);
+    }
+  }
+  
+  async checkPaymentStatus() {
+    try {
+      const response = await fetch('/api/payments/status', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      return result;
+    } catch (err) {
+      console.error('Error checking payment status:', err);
+      return { enabled: false };
     }
   }
 
-  validateForm() {
-    const paymentMethod = document.getElementById('paymentMethod').value;
+  validateForm(formData) {
+    const paymentMethod = formData.paymentMethod;
     
     if (paymentMethod !== 'paypal') {
       const cardNumber = document.getElementById('cardNumber').value;
