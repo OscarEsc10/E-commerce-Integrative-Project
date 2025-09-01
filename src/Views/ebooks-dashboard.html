@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Ebooks</title>
+  <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
+  <script type="module" src="/src/Views/js/ebook-dashboard.js" defer></script>
+  <script src="/src/Views/js/modern-pagination.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/Assest/css/dashboard.css">
+  <link rel="stylesheet" href="/Assest/css/modern-pagination.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#667eea',
+            'secondary': '#764ba2'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div class="flex items-center space-x-4">
+      <div id="userAvatar" class="w-10 h-10 bg-indigo-500 text-white flex items-center justify-center rounded-full font-bold text-lg">U</div>
+      <span id="userName" class="font-semibold"></span>
+      <span id="welcomeMessage" class="text-gray-600 ml-2"></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button id="btn-back-dashboard" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Dashboard</button>
+      <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <!-- Contenedor principal -->
+  <div class="container mx-auto mt-6 flex space-x-6">
+    
+    <!-- Sección principal -->
+    <div class="flex-1 space-y-6">
+
+      <!-- Filtros y botones -->
+      <div class="flex justify-between items-center">
+        <input type="text" id="search-input" placeholder="Buscar ebook..." class="p-2 border rounded w-1/3">
+        <select id="ebook-category" class="p-2 border rounded"></select>
+      <select id="ebook-condition" class="p-2 border rounded">
+        <option value="">Todas</option>
+        <option value="1">Nuevo</option>
+        <option value="2">Usado</option>
+        <option value="3">Donación</option>
+      </select>
+
+        <button id="add-ebook-btn" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 hidden">Agregar Ebook</button>
+      </div>
+      <button id="btn-view-donations" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+      Ver Donaciones
+      </button>
+
+
+      <!-- Spinner -->
+      <div id="loading-spinner" class="hidden text-center">Cargando...</div>
+
+      <!-- Grid ebooks -->
+      <div id="ebooks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!--Donate section-->
+      <div id="donate-section" class="hidden mt-6">
+      <h3 class="text-2xl font-bold text-gray-800 mb-2">Ebooks en Donación 🎁</h3>
+      <div id="donate-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="donate-count" class="text-gray-700 font-medium mt-2"></div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="empty-state" class="text-gray-500 text-center hidden">No hay ebooks disponibles</div>
+
+      <!-- Contador -->
+      <div id="ebooks-count" class="text-gray-700 font-medium"></div>
+
+    </div>
+
+  <!-- CONTENEDOR DE EBOOKS -->
+  <div id="ebooksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"></div>
+
+  <!-- PAGINACIÓN -->
+  <div id="pagination-container" class="flex justify-center items-center mt-8 mb-8">
+    <nav aria-label="Pagination">
+      <ul id="pagination" class="flex space-x-1">
+        <!-- Pagination buttons will be generated here -->
+      </ul>
+    </nav>
+  </div>
+
+  <!-- FLOATING CART ICON -->
+  <div id="floating-cart" class="fixed bottom-6 right-6 z-50">
+    <button id="cart-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110">
+      <i class="fas fa-shopping-cart text-xl"></i>
+      <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">0</span>
+    </button>
+  </div>
+
+  <!-- Modal Carrito -->
+  <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg w-96 max-h-[80vh] overflow-y-auto p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">🛒 Mi Carrito</h3>
+        <button id="closeCart" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div id="cartItems" class="divide-y divide-gray-200 mb-4 max-h-60 overflow-y-auto">
+        <div class="text-center text-gray-500 py-8">Carrito vacío</div>
+      </div>
+      <div class="border-t pt-4">
+        <div class="flex justify-between items-center font-bold text-lg mb-4">
+          <span>Total:</span>
+          <span id="cartTotal">$0.00</span>
+        </div>
+        <div class="flex space-x-2">
+          <button id="clearCart" class="flex-1 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors">
+            Vaciar Carrito
+          </button>
+          <button id="checkoutBtn" class="flex-1 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition-colors">
+            Proceder al Pago
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-800 text-white py-4 mt-8">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
+        <div class="text-center md:text-left">
+          <span class="font-semibold">E-commerce Ebooks</span>
+          <span class="text-gray-300 ml-2">- Tu tienda digital favorita</span>
+        </div>
+        <div class="flex items-center space-x-6 text-sm text-gray-300">
+          <a href="/dashboard" class="hover:text-white transition-colors">Dashboard</a>
+          <a href="/catalog" class="hover:text-white transition-colors">Catálogo</a>
+          <span>&copy; 2024 E-commerce Ebooks</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

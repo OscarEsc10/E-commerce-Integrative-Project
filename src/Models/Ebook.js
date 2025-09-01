@@ -110,4 +110,17 @@ export class Ebook {
       }
     };
   }
+
+  static async findByCondition(condition_id) {
+    try {
+    const { rows } = await pool.query(
+      `SELECT * FROM ebooks WHERE condition_id = $1 ORDER BY created_at DESC`,
+      [condition_id]
+    );
+    return rows || []; // Devuelve siempre un array
+    } catch (err) {
+    console.error('Error en findByCondition:', err);
+    return []; // Retorna array vacío si falla
+   }
+  }
 }
