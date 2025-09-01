@@ -22,13 +22,14 @@ export async function renderSellerOrders() {
     }
 
     const rowsHtml = orders.map(o => `
-      <tr>
-        <td>${escapeHtml(o.order_id)}</td>
-        <td>${escapeHtml(o.status_name)}</td>
-        <td>${new Date(o.created_at).toLocaleDateString()}</td>
-        <td>$${Number(o.total).toFixed(2)}</td>
-      </tr>
+    <tr class="border-b hover:bg-gray-50">
+    <td class="px-4 py-2">${escapeHtml(o.order_id)}</td>
+    <td class="px-4 py-2">${escapeHtml(o.status_name)}</td>
+    <td class="px-4 py-2">${new Date(o.created_at).toLocaleDateString()}</td>
+    <td class="px-4 py-2">$${Number(o.total).toFixed(2)}</td>
+    </tr>
     `).join('');
+
 
     section.innerHTML = `
       <h3 class="text-2xl font-bold mb-4">Mis Órdenes</h3>
