@@ -12,7 +12,8 @@ class CheckoutManager {
 
   async init() {
     try {
-      if (!authManager.requireAuth()) return;
+      // Remove auth requirement since we allow guest checkout
+      // if (!authManager.requireAuth()) return;
 
       // Load cart items from URL params or localStorage
       this.loadOrderItems();
@@ -87,7 +88,7 @@ class CheckoutManager {
 
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        window.history.back();
+        window.location.href = '/catalog';
       });
     }
 
@@ -100,17 +101,13 @@ class CheckoutManager {
 
     if (paymentMethod) {
       paymentMethod.addEventListener('change', (e) => {
-        this.toggleCardInfo(e.target.value);
+        this.togglePaymentFields(e.target.value);
       });
+      // Initialize with default selection
+      this.togglePaymentFields(paymentMethod.value);
     }
   }
 
-  toggleCardInfo(paymentMethod) {
-    const cardInfo = document.getElementById('cardInfo');
-    if (cardInfo) {
-      cardInfo.style.display = paymentMethod === 'paypal' ? 'none' : 'block';
-    }
-  }
 
   setupCardFormatting() {
     const cardNumber = document.getElementById('cardNumber');
@@ -158,17 +155,38 @@ class CheckoutManager {
         return;
       }
       
-      const paymentData = {
+      // Build payment data based on method
+      let paymentData = {
         payment_method: formData.paymentMethod,
-        card_number: formData.cardNumber,
-        expiry_date: formData.expiryDate,
-        cvv: formData.cvv,
-        cardholder_name: formData.cardholderName,
         billing_address: formData.billingAddress,
         items: this.orderItems,
         total: this.total,
-        user_id: authManager.getUserData()?.user_id || authManager.getUserData()?.id
+        user_id: authManager.getUserData()?.user_id || authManager.getUserData()?.id || 'guest'
       };
+
+      // Add method-specific data
+      switch(formData.paymentMethod) {
+        case 'credit_card':
+        case 'debit_card':
+          paymentData = {
+            ...paymentData,
+            card_number: formData.cardNumber,
+            expiry_date: formData.expiryDate,
+            cvv: formData.cvv,
+            cardholder_name: formData.cardholderName
+          };
+          break;
+        case 'nequi':
+          paymentData = {
+            ...paymentData,
+            nequi_phone: formData.nequiPhone,
+            nequi_pin: formData.nequiPin
+          };
+          break;
+        case 'paypal':
+          // PayPal will handle its own flow
+          break;
+      }
 
       const response = await fetch('/api/payments/process', {
         method: 'POST',
@@ -217,57 +235,126 @@ class CheckoutManager {
   validateForm(formData) {
     const paymentMethod = formData.paymentMethod;
     
-    if (paymentMethod !== 'paypal') {
-      const cardNumber = document.getElementById('cardNumber').value;
-      const expiryDate = document.getElementById('expiryDate').value;
-      const cvv = document.getElementById('cvv').value;
-      const cardName = document.getElementById('cardName').value;
-
-      if (!cardNumber || cardNumber.replace(/\s/g, '').length < 13) {
-        alert('Por favor ingresa un número de tarjeta válido');
-        return false;
-      }
-
-      if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
-        alert('Por favor ingresa una fecha de expiración válida (MM/YY)');
-        return false;
-      }
-
-      if (!cvv || cvv.length < 3) {
-        alert('Por favor ingresa un CVV válido');
-        return false;
-      }
-
-      if (!cardName.trim()) {
-        alert('Por favor ingresa el nombre en la tarjeta');
-        return false;
-      }
-    }
-
-    // Validate address
-    const address = document.getElementById('address').value;
-    const city = document.getElementById('city').value;
-    const zipCode = document.getElementById('zipCode').value;
-
-    if (!address.trim() || !city.trim() || !zipCode.trim()) {
-      alert('Por favor completa toda la información de dirección');
+    // Validate billing address for all methods
+    if (!formData.billingAddress.address.trim()) {
+      alert('Por favor ingresa la dirección de facturación');
       return false;
+    }
+    
+    if (!formData.billingAddress.city.trim()) {
+      alert('Por favor ingresa la ciudad');
+      return false;
+    }
+    
+    switch(paymentMethod) {
+      case 'credit_card':
+      case 'debit_card':
+        if (!formData.cardNumber || formData.cardNumber.replace(/\s/g, '').length < 13) {
+          alert('Por favor ingresa un número de tarjeta válido');
+          return false;
+        }
+        if (!formData.expiryDate || !/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
+          alert('Por favor ingresa una fecha de expiración válida (MM/YY)');
+          return false;
+        }
+        if (!formData.cvv || formData.cvv.length < 3) {
+          alert('Por favor ingresa un CVV válido');
+          return false;
+        }
+        if (!formData.cardholderName.trim()) {
+          alert('Por favor ingresa el nombre del titular de la tarjeta');
+          return false;
+        }
+        break;
+        
+      case 'nequi':
+        if (!formData.nequiPhone || !/^3\d{9}$/.test(formData.nequiPhone)) {
+          alert('Por favor ingresa un número de teléfono Nequi válido (debe empezar con 3)');
+          return false;
+        }
+        if (!formData.nequiPin || formData.nequiPin.length !== 4) {
+          alert('Por favor ingresa un PIN Nequi válido (4 dígitos)');
+          return false;
+        }
+        break;
+        
+      case 'paypal':
+        // PayPal validation will be handled by PayPal itself
+        break;
+        
+      default:
+        alert('Por favor selecciona un método de pago válido');
+        return false;
     }
 
     return true;
   }
 
+  togglePaymentFields(method) {
+    const cardInfo = document.getElementById('cardInfo');
+    const nequiInfo = document.getElementById('nequiInfo');
+    const paypalInfo = document.getElementById('paypalInfo');
+    const paymentIcon = document.getElementById('paymentIcon');
+    const paymentText = document.getElementById('paymentText');
+
+    // Hide all payment sections
+    cardInfo.classList.add('hidden');
+    nequiInfo.classList.add('hidden');
+    paypalInfo.classList.add('hidden');
+
+    // Show relevant section and update button
+    switch(method) {
+      case 'credit_card':
+      case 'debit_card':
+        cardInfo.classList.remove('hidden');
+        paymentIcon.className = 'fas fa-credit-card mr-2';
+        paymentText.textContent = 'Procesar Pago';
+        break;
+      case 'nequi':
+        nequiInfo.classList.remove('hidden');
+        paymentIcon.className = 'fas fa-mobile-alt mr-2';
+        paymentText.textContent = 'Pagar con Nequi';
+        break;
+      case 'paypal':
+        paypalInfo.classList.remove('hidden');
+        paymentIcon.className = 'fab fa-paypal mr-2';
+        paymentText.textContent = 'Pagar con PayPal';
+        break;
+    }
+  }
+
   getFormData() {
-    return {
-      paymentMethod: document.getElementById('paymentMethod').value,
-      cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
-      expiryDate: document.getElementById('expiryDate').value,
-      cvv: document.getElementById('cvv').value,
-      cardName: document.getElementById('cardName').value,
-      address: document.getElementById('address').value,
-      city: document.getElementById('city').value,
-      zipCode: document.getElementById('zipCode').value
+    const method = document.getElementById('paymentMethod').value;
+    const baseData = {
+      paymentMethod: method,
+      billingAddress: {
+        address: document.getElementById('address').value,
+        city: document.getElementById('city').value,
+        zipCode: document.getElementById('zipCode').value
+      }
     };
+
+    switch(method) {
+      case 'credit_card':
+      case 'debit_card':
+        return {
+          ...baseData,
+          cardNumber: document.getElementById('cardNumber').value,
+          expiryDate: document.getElementById('expiryDate').value,
+          cvv: document.getElementById('cvv').value,
+          cardholderName: document.getElementById('cardName').value
+        };
+      case 'nequi':
+        return {
+          ...baseData,
+          nequiPhone: document.getElementById('nequiPhone').value,
+          nequiPin: document.getElementById('nequiPin').value
+        };
+      case 'paypal':
+        return baseData;
+      default:
+        return baseData;
+    }
   }
 
   showSpinner(show) {

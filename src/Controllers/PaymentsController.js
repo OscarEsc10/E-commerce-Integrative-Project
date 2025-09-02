@@ -136,26 +136,45 @@ export const PaymentController = {
         return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
       }
 
-      // Validate card details if not PayPal
-      if (payment_method !== 'paypal') {
-        if (!card_number || !expiry_date || !cvv || !cardholder_name) {
-          return res.status(400).json({ success: false, message: 'Datos de tarjeta incompletos' });
-        }
-
-        // Strip spaces from card number
-        const cleanCardNumber = card_number.replace(/\s/g, '');
-
-        if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
-          return res.status(400).json({ success: false, message: 'Número de tarjeta inválido' });
-        }
-
-        if (!/^\d{2}\/\d{2}$/.test(expiry_date)) {
-          return res.status(400).json({ success: false, message: 'Fecha de expiración inválida' });
-        }
-
-        if (!/^\d{3,4}$/.test(cvv)) {
-          return res.status(400).json({ success: false, message: 'CVV inválido' });
-        }
+      // Validate payment credentials based on method
+      switch(payment_method) {
+        case 'credit_card':
+        case 'debit_card':
+          if (!card_number || !expiry_date || !cvv || !cardholder_name) {
+            return res.status(400).json({ success: false, message: 'Datos de tarjeta incompletos' });
+          }
+          // Basic card validation
+          const cleanCardNumber = card_number.replace(/\s/g, '');
+          if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+            return res.status(400).json({ success: false, message: 'Número de tarjeta inválido' });
+          }
+          if (!/^\d{2}\/\d{2}$/.test(expiry_date)) {
+            return res.status(400).json({ success: false, message: 'Fecha de expiración inválida' });
+          }
+          if (!/^\d{3,4}$/.test(cvv)) {
+            return res.status(400).json({ success: false, message: 'CVV inválido' });
+          }
+          break;
+          
+        case 'nequi':
+          const { nequi_phone, nequi_pin } = req.body;
+          if (!nequi_phone || !nequi_pin) {
+            return res.status(400).json({ success: false, message: 'Datos de Nequi incompletos' });
+          }
+          if (!/^3\d{9}$/.test(nequi_phone)) {
+            return res.status(400).json({ success: false, message: 'Número de teléfono Nequi inválido' });
+          }
+          if (!/^\d{4}$/.test(nequi_pin)) {
+            return res.status(400).json({ success: false, message: 'PIN Nequi inválido' });
+          }
+          break;
+          
+        case 'paypal':
+          // PayPal validation handled by PayPal SDK
+          break;
+          
+        default:
+          return res.status(400).json({ success: false, message: 'Método de pago no válido' });
       }
 
       // Create order first (status = pending)
@@ -168,14 +187,27 @@ export const PaymentController = {
 
       const order = await Order.create(orderData);
 
-      // Simulate payment processing
-      const paymentData = {
+      // Process payment (simulate payment processing)
+      let paymentData = {
         order_id: order.order_id,
         method: payment_method,
         amount: total,
-        card_last_four: payment_method !== 'paypal' ? card_number.slice(-4) : null,
-        status: 'completed' // In real scenario, wait for gateway confirmation
+        status: 'completed' // In real implementation, this would be pending until payment gateway confirms
       };
+
+      // Add method-specific data
+      switch(payment_method) {
+        case 'credit_card':
+        case 'debit_card':
+          paymentData.card_last_four = card_number.slice(-4);
+          break;
+        case 'nequi':
+          paymentData.nequi_phone = req.body.nequi_phone;
+          break;
+        case 'paypal':
+          paymentData.paypal_email = req.body.paypal_email || 'guest@paypal.com';
+          break;
+      }
 
       const payment = await Payment.create(paymentData);
 
@@ -209,10 +241,10 @@ export const PaymentController = {
       // Simulate payment gateway availability
       const paymentEnabled = process.env.PAYMENT_ENABLED !== 'false';
 
-      res.json({
-        success: true,
+      res.json({ 
+        success: true, 
         enabled: paymentEnabled,
-        available_methods: ['credit_card', 'debit_card', 'paypal']
+        available_methods: ['credit_card', 'debit_card', 'nequi', 'paypal']
       });
     } catch (error) {
       res.status(500).json({

@@ -47,7 +47,7 @@ export const OrderController = {
         user_id,
         address_id,
         total,
-        status_id: 1, // default: pending/new
+        status: 1, // default: pending/new
         items: cartItems.map(ci => ({
           product_id: ci.ebook_id,
           quantity: ci.quantity,

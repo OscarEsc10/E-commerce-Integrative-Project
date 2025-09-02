@@ -18,7 +18,7 @@ const viewsPath = path.join(__dirname, '../Views');
  * Example: /dashboard serves dashboard.html
  */
 const routes = {
-  '/': 'dashboard.html',
+  '/': 'register.html',
   '/login': 'Login.html',
   '/register': 'register.html',
   '/dashboard': 'dashboard.html',

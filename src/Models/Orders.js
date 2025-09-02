@@ -21,7 +21,7 @@ export class Order {
 
       // Insert into orders with default status = 1 (PENDING)
       const orderQuery = `
-        INSERT INTO orders (user_id, address_id, total, status_id, created_at)
+        INSERT INTO orders (user_id, address_id, total, status, created_at)
         VALUES ($1, $2, $3, 1, NOW())
         RETURNING *
       `;
@@ -67,7 +67,7 @@ export class Order {
     const query = `
       SELECT o.*, s.name AS status_name
       FROM orders o
-      JOIN orders_status s ON o.status_id = s.orderstatus_id
+      JOIN orders_status s ON o.status = s.orderstatus_id
       WHERE o.user_id = $1
       ORDER BY o.created_at DESC
     `;
@@ -136,7 +136,7 @@ export class Order {
   static async updateStatus(order_id, status_id) {
     const query = `
       UPDATE orders
-      SET status_id = $1
+      SET status = $1
       WHERE order_id = $2
       RETURNING *
     `;
@@ -152,11 +152,11 @@ export class Order {
    */
   static async findByCreatorId(sellerId) {
     const { rows } = await pool.query(`
-      SELECT o.order_id, o.user_id, o.total, o.status_id, o.created_at, s.name AS status_name
+      SELECT o.order_id, o.user_id, o.total, o.status, o.created_at, s.name AS status_name
       FROM orders o
       JOIN order_items oi ON o.order_id = oi.order_id
       JOIN ebooks e ON oi.product_id = e.ebook_id
-      JOIN orders_status s ON o.status_id = s.orderstatus_id
+      JOIN orders_status s ON o.status = s.orderstatus_id
       WHERE e.creator_id = $1
       GROUP BY o.order_id, s.name
       ORDER BY o.created_at DESC

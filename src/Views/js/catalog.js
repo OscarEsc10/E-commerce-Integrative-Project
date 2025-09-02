@@ -128,8 +128,8 @@ class EbookCatalog {
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pt-0">
-                        <button class="btn btn-primary w-100" onclick="handlePurchase(${ebook.ebook_id}, '${ebook.name || ebook.title}', ${price})">
-                            <i class="fas fa-shopping-cart me-2"></i>Comprar
+                        <button class="btn btn-success w-100" onclick="addToCart(${ebook.ebook_id}, '${ebook.name || ebook.title}', ${price})">
+                            <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
                         </button>
                     </div>
                 </div>
@@ -211,11 +211,7 @@ class EbookCatalog {
     }
 
     setupCartFunctionality() {
-        if (this.cartBtn) {
-            this.cartBtn.addEventListener('click', () => {
-                window.location.href = '/dashboard';
-            });
-        }
+        // Cart button functionality is handled by onclick in HTML
         
         // Load cart count on page load
         this.updateCartBadge();
@@ -460,21 +456,7 @@ function showToast(message, type = 'success') {
 
 // Handle purchase button click
 function handlePurchase(ebookId, ebookName, price) {
-    // Check if user is logged in
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const isLoggedIn = userData && (userData.user_id || userData.id);
-    
-    if (!isLoggedIn) {
-        // Store return URL and redirect to login
-        localStorage.setItem('returnUrl', '/catalog');
-        showToast('Debes iniciar sesión para realizar compras', 'info');
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 1500);
-        return;
-    }
-    
-    // User is logged in, redirect to checkout with item data
+    // Direct purchase without login requirement
     const purchaseData = {
         items: [{
             ebookId: ebookId,
@@ -490,22 +472,22 @@ function handlePurchase(ebookId, ebookName, price) {
 
 // Add item to cart
 function addToCart(ebookId, ebookName, price) {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     
-    // Check if item already exists
+    // Check if item already exists in cart
     const existingItem = cart.find(item => item.ebookId === ebookId);
-    if (existingItem) {
-        showToast('Este ebook ya está en tu carrito', 'warning');
-        return;
-    }
     
-    // Add new item
-    cart.push({
-        ebookId: ebookId,
-        ebookName: ebookName,
-        price: price,
-        quantity: 1
-    });
+    if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+        showToast('Cantidad actualizada en el carrito', 'success');
+    } else {
+        cart.push({
+            ebookId,
+            ebookName,
+            price: parseFloat(price),
+            quantity: 1
+        });
+    }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
@@ -515,17 +497,25 @@ function addToCart(ebookId, ebookName, price) {
 // Update cart count display
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const cartCount = cart.length;
+    const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     const cartBadge = document.getElementById('cart-count');
+    const cartCountBadge = document.getElementById('cart-count-badge');
     const cartToggle = document.getElementById('cart-toggle');
     
+    // Update floating cart button
     if (cartBadge) {
         cartBadge.textContent = cartCount;
-        cartBadge.style.display = cartCount > 0 ? 'inline' : 'none';
+        cartBadge.style.display = cartCount > 0 ? 'flex' : 'none';
+    }
+    
+    // Update navbar cart button badge
+    if (cartCountBadge) {
+        cartCountBadge.textContent = cartCount;
+        cartCountBadge.style.display = cartCount > 0 ? 'inline' : 'none';
     }
     
     if (cartToggle) {
-        cartToggle.style.display = 'flex';
+        cartToggle.style.display = cartCount > 0 ? 'flex' : 'none';
     }
 }
 
@@ -546,10 +536,32 @@ function clearCart() {
 function toggleCart() {
     const cartDropdown = document.getElementById('cart-dropdown');
     if (cartDropdown) {
-        cartDropdown.classList.toggle('hidden');
-        if (!cartDropdown.classList.contains('hidden')) {
+        const isHidden = cartDropdown.classList.contains('hidden');
+        
+        if (isHidden) {
+            cartDropdown.classList.remove('hidden');
             renderCartItems();
+            // Close dropdown when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', closeCartOnOutsideClick);
+            }, 100);
+        } else {
+            cartDropdown.classList.add('hidden');
+            document.removeEventListener('click', closeCartOnOutsideClick);
         }
+    }
+}
+
+// Close cart when clicking outside
+function closeCartOnOutsideClick(event) {
+    const cartDropdown = document.getElementById('cart-dropdown');
+    const cartToggle = document.getElementById('cart-toggle');
+    
+    if (cartDropdown && cartToggle && 
+        !cartDropdown.contains(event.target) && 
+        !cartToggle.contains(event.target)) {
+        cartDropdown.classList.add('hidden');
+        document.removeEventListener('click', closeCartOnOutsideClick);
     }
 }
 
@@ -562,21 +574,33 @@ function renderCartItems() {
     if (!cartItems) return;
     
     if (cart.length === 0) {
-        cartItems.innerHTML = '<div class="text-center text-gray-500 py-4">Carrito vacío</div>';
+        cartItems.innerHTML = `
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 text-center">No has seleccionado ningún producto</p>
+                <p class="text-gray-400 text-sm text-center mt-2">Explora nuestro catálogo y agrega ebooks a tu carrito</p>
+            </div>
+        `;
         if (cartTotal) cartTotal.textContent = '$0.00';
         return;
     }
     
     let total = 0;
     cartItems.innerHTML = cart.map(item => {
-        total += item.price;
+        const quantity = item.quantity || 1;
+        const itemTotal = item.price * quantity;
+        total += itemTotal;
+        
         return `
-            <div class="cart-item flex justify-between items-center py-2 border-b">
-                <div>
-                    <h6 class="font-medium text-sm">${item.ebookName}</h6>
-                    <span class="text-xs text-gray-500">$${item.price.toFixed(2)}</span>
+            <div class="cart-item">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.ebookName}</div>
+                    <div class="cart-item-details">
+                        <span class="cart-item-quantity">Cantidad: ${quantity}</span>
+                        <span class="cart-item-price">$${itemTotal.toFixed(2)}</span>
+                    </div>
                 </div>
-                <button onclick="removeFromCart(${item.ebookId})" class="text-red-500 hover:text-red-700">
+                <button onclick="removeFromCart(${item.ebookId})" class="cart-item-remove" title="Eliminar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -604,7 +628,158 @@ function proceedToCheckout() {
         return;
     }
     
-    localStorage.setItem('checkoutData', JSON.stringify(cart));
+    const checkoutData = {
+        items: cart.map(item => ({
+            ebookId: item.ebook_id || item.ebookId,
+            ebookName: item.ebook_name || item.name || item.ebookName,
+            price: item.ebook_price || item.price,
+            quantity: item.quantity || 1
+        }))
+    };
+    
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+    window.location.href = '/checkout';
+}
+
+// Open cart modal
+function openCartModal() {
+    renderCartModal();
+    const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
+    cartModal.show();
+}
+
+// Render cart items in modal
+function renderCartModal() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const modalCartItems = document.getElementById('modal-cart-items');
+    const modalEmptyCart = document.getElementById('modal-empty-cart');
+    const modalCartTotal = document.getElementById('modal-cart-total');
+    const modalCartCount = document.getElementById('modal-cart-count');
+    
+    const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    modalCartCount.textContent = totalItems;
+    
+    if (cart.length === 0) {
+        modalCartItems.style.display = 'none';
+        modalEmptyCart.style.display = 'block';
+        modalCartTotal.textContent = '$0.00';
+        return;
+    }
+    
+    modalCartItems.style.display = 'block';
+    modalEmptyCart.style.display = 'none';
+    
+    let total = 0;
+    modalCartItems.innerHTML = cart.map(item => {
+        const quantity = item.quantity || 1;
+        const itemTotal = item.price * quantity;
+        total += itemTotal;
+        
+        return `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="card-title mb-1">${item.ebookName}</h6>
+                            <small class="text-muted">Precio unitario: $${item.price.toFixed(2)}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateCartQuantity(${item.ebookId}, ${quantity - 1})">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="fw-bold mx-2">${quantity}</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateCartQuantity(${item.ebookId}, ${quantity + 1})">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="fw-bold text-success">$${itemTotal.toFixed(2)}</div>
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeFromCartModal(${item.ebookId})" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    modalCartTotal.textContent = `$${total.toFixed(2)}`;
+}
+
+// Update quantity from modal
+function updateCartQuantity(ebookId, newQuantity) {
+    newQuantity = parseInt(newQuantity);
+    
+    if (newQuantity < 1) {
+        removeFromCartModal(ebookId);
+        return;
+    }
+    
+    if (newQuantity > 10) {
+        showToast('Máximo 10 unidades por producto', 'warning');
+        return;
+    }
+    
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const itemIndex = cart.findIndex(item => item.ebookId === ebookId);
+    
+    if (itemIndex !== -1) {
+        cart[itemIndex].quantity = newQuantity;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCartModal();
+        updateCartCount();
+        showToast('Cantidad actualizada', 'success');
+    }
+}
+
+// Remove item from cart in modal
+function removeFromCartModal(ebookId) {
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart = cart.filter(item => item.ebookId !== ebookId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartModal();
+    updateCartCount();
+    showToast('Producto eliminado del carrito', 'info');
+}
+
+// Clear cart from modal
+function clearCartModal() {
+    if (confirm('¿Estás seguro de que quieres vaciar tu carrito?')) {
+        localStorage.removeItem('cart');
+        renderCartModal();
+        updateCartCount();
+        showToast('Carrito vaciado', 'info');
+    }
+}
+
+// Proceed to checkout from modal
+function proceedToCheckoutFromModal() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    if (cart.length === 0) {
+        showToast('Tu carrito está vacío', 'warning');
+        return;
+    }
+    
+    // Prepare checkout data
+    const checkoutData = cart.map(item => ({
+        ebookId: item.ebookId,
+        ebookName: item.ebookName,
+        price: item.price,
+        quantity: item.quantity || 1
+    }));
+    
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+    
+    // Close modal and redirect
+    const cartModal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
+    if (cartModal) cartModal.hide();
+    
     window.location.href = '/checkout';
 }
 

@@ -629,11 +629,11 @@ body {
 }
 
 .cart-item {
-    padding: 12px 20px;
-    border-bottom: 1px solid #f1f5f9;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .cart-item:last-child {
@@ -646,15 +646,29 @@ body {
 
 .cart-item-name {
     font-weight: 500;
-    color: #1e293b;
-    font-size: 0.9rem;
+    font-size: 14px;
+    color: #374151;
     margin-bottom: 4px;
 }
 
+.cart-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-item-quantity {
+    font-size: 11px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
 .cart-item-price {
-    color: #667eea;
+    font-size: 12px;
+    color: #059669;
     font-weight: 600;
-    font-size: 0.85rem;
 }
 
 .cart-item-remove {

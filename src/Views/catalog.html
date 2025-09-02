@@ -24,7 +24,7 @@
                     <a class="nav-link me-3" href="/dashboard">
                         <i class="fas fa-user me-1"></i>Dashboard
                     </a>
-                    <button class="btn btn-outline-success btn-sm me-3" id="cart-btn">
+                    <button class="btn btn-outline-success btn-sm me-3" id="cart-btn" onclick="openCartModal()">
                         <i class="fas fa-shopping-cart me-1"></i>Carrito
                         <span id="cart-count-badge" class="badge bg-danger ms-1" style="display: none;">0</span>
                     </button>
@@ -58,7 +58,10 @@
                 <div class="cart-total">
                     <strong>Total: <span id="cart-total">$0.00</span></strong>
                 </div>
-                <button class="checkout-btn" onclick="proceedToCheckout()">
+                <button class="checkout-btn" onclick="openCartModal()">
+                    <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+                </button>
+                <button class="checkout-btn" onclick="proceedToCheckout()" style="margin-top: 0.5rem;">
                     <i class="fas fa-credit-card me-2"></i>Pagar
                 </button>
             </div>
@@ -145,6 +148,50 @@
                     </nav>
                     <div class="text-center">
                         <small class="text-muted" id="paginationInfo">Página 1 de 1</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="cartModalLabel">
+                        <i class="fas fa-shopping-cart me-2"></i>Mi Carrito
+                        <span class="badge bg-light text-primary ms-2" id="modal-cart-count">0</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Empty Cart State -->
+                    <div id="modal-empty-cart" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-shopping-cart text-muted" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h4 class="text-muted">Tu carrito está vacío</h4>
+                        <p class="text-muted">No has agregado ningún ebook a tu carrito aún.</p>
+                        <p class="text-muted small">Explora nuestro catálogo y encuentra los mejores ebooks.</p>
+                    </div>
+                    
+                    <!-- Cart Items -->
+                    <div id="modal-cart-items">
+                        <!-- Cart items will be rendered here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="w-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Total: <span id="modal-cart-total" class="text-primary">$0.00</span></h5>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger" onclick="clearCartModal()">
+                                <i class="fas fa-trash me-2"></i>Limpiar Carrito
+                            </button>
+                            <button type="button" class="btn btn-primary flex-fill" onclick="proceedToCheckoutFromModal()">
+                                <i class="fas fa-credit-card me-2"></i>Ir al Pago
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
