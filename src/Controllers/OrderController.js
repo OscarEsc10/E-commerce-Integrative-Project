@@ -182,13 +182,18 @@ export const OrderController = {
   getByCustomer: async (req, res) => {
     try {
       const user_id = req.user?.user_id;
+      console.log('getByCustomer - user_id:', user_id);
+      console.log('getByCustomer - req.user:', req.user);
+      
       if (!user_id) {
         return res.status(400).json({ success: false, message: 'Falta customerId' });
       }
 
       const orders = await Order.findByUserId(user_id);
+      console.log('getByCustomer - orders found:', orders);
       res.json({ success: true, orders });
     } catch (error) {
+      console.error('getByCustomer - Error:', error);
       res.status(500).json({
         success: false,
         message: 'Error obteniendo órdenes del cliente',

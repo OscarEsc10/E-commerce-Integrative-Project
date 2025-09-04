@@ -21,7 +21,7 @@ export async function renderCustomerOrders() {
 
   try {
     const userId = user.user_id;
-    const data = await apiClient.makeRequest(`/orders/customer`, { method: 'GET' });
+    const data = await apiClient.makeRequest(`/api/orders/customer`, { method: 'GET' });
     const orders = data?.orders || [];
 
     if (!orders.length) {

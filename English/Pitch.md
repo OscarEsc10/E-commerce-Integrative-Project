@@ -1,4 +1,4 @@
-## Elevator Pitch.
+Elevator Pitch.
 
 Hello everyone, my name is Oscar, and I am very excited to present our project: 404 Found.
 

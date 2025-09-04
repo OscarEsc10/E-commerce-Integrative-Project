@@ -64,15 +64,23 @@ export class Order {
    * @returns {Promise<Array>} List of orders with their statuses
    */
   static async findByUserId(user_id) {
-    const query = `
-      SELECT o.*, s.name AS status_name
-      FROM orders o
-      JOIN orders_status s ON o.status = s.orderstatus_id
-      WHERE o.user_id = $1
-      ORDER BY o.created_at DESC
-    `;
-    const { rows } = await pool.query(query, [user_id]);
-    return rows;
+    try {
+      console.log('findByUserId - user_id:', user_id);
+      const query = `
+        SELECT o.*, s.name AS status_name
+        FROM orders o
+        LEFT JOIN orders_status s ON o.status = s.orderstatus_id
+        WHERE o.user_id = $1
+        ORDER BY o.created_at DESC
+      `;
+      console.log('findByUserId - executing query:', query);
+      const { rows } = await pool.query(query, [user_id]);
+      console.log('findByUserId - rows returned:', rows.length);
+      return rows;
+    } catch (error) {
+      console.error('findByUserId - Database error:', error);
+      throw error;
+    }
   }
 
   /**
