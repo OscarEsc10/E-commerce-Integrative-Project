@@ -1,83 +1,93 @@
-// index.js
-// This is the main entry point of the application
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
-// Importing configurations
+/**
+ * Main entry point for the E-commerce backend server.
+ * Sets up Express app, middleware, API routes, static assets, error handling, and server startup.
+ */
+// Import config
 import { PORT } from "./Config/config.js";
-import "./Config/ConnectionToBd.js"; // Initialize database connection
+import "./Config/ConnectionToBd.js";
 
-// Importing routes
+ 
+
+// Import routers
 import authRoutes from "./src/Routes/authRoutes.js";
-
-// Get current directory for ES modules
+import userRoutes from "./src/Routes/userRoutes.js";
+// Import routers for all API and view endpoints
+import EbookRoutes from "./src/Routes/EbookRoutes.js";
+import categoryRoutes from "./src/Routes/categoryRoutes.js";
+import CartRoutes from "./src/Routes/CartRoutes.js";
+import sellerRequestRoutes from "./src/Routes/sellerRequestRoutes.js";
+import OrdersRoutes from './src/Routes/OrdersRoutes.js';
+import adressRoutes from './src/Routes/addressRoutes.js'
+import PaymentsRoutes from './src/Routes/PaymentsRoutes.js';
+import invoicesRoutes from './src/Routes/InvoiceRoutes.js';
+import viewRoutes from "./src/Routes/viewRoutes.js";
+import ReportRoutes from "./src/Routes/ReportRoutes.js"
+// ES module dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initializing the Express application
+// Get __dirname for ES modules
+// Init app
 const app = express();
 
 // Middlewares
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'your-domain.com' : 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json({ limit: '10mb' }));
+// Initialize Express app
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from Views directory
-app.use(express.static(path.join(__dirname, 'src', 'Views')));
+// Global middlewares
 
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/ebooks", EbookRoutes);
+// Register API routes
+app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", CartRoutes);
+app.use("/api/seller-requests", sellerRequestRoutes);
+app.use('/api/orders', OrdersRoutes);
+app.use("/api/addresses", adressRoutes);
+app.use('/api/payments', PaymentsRoutes);
+app.use('/api/invoices', invoicesRoutes);
+app.use('/api/reports', ReportRoutes);
 
-// Serve HTML files
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'Login.html'));
-});
+// View Routes (clean URLs)
+app.use("/", viewRoutes);
 
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'Login.html'));
-});
+// Static Assets
+// Register view routes for frontend pages
+app.use('/Assest', express.static('Assest'));
 
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'register.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src', 'Views', 'dashboard.html'));
-});
-
-// Test API route
+// Healthcheck
+// Serve static assets (images, CSS, etc.)
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "E-commerce API is running ",
-    timestamp: new Date().toISOString()
+// Healthcheck endpoint for monitoring
+    message: "E-commerce API is running",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
+// Error handlers
+app.use("*", (req, res) =>
+  res.status(404).json({ success: false, message: "Route not found" })
+);
+// Error handling for 404 and global errors
 
-// Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error'
-  });
+  console.error("Global error:", error);
+  console.error("Error stack:", error.stack);
+  res.status(500).json({ success: false, message: "Internal server error", error: error.message });
 });
 
-// Starting the server
+// Start server
 app.listen(PORT, () => {
-  console.log(` Server running on http://localhost:${PORT}`);
-  console.log(` Login page: http://localhost:${PORT}/login`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+// Start the Express server

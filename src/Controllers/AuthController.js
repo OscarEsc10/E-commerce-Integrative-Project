@@ -1,17 +1,36 @@
 // src/Controllers/AuthController.js
-// Authentication controller handling login, register, and user management
+// Authentication controller handling login, register, profile, and password management
+
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { User } from '../Models/User.js';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../Config/config.js';
+import bcrypt from 'bcryptjs/dist/bcrypt.js';
 
+/**
+ * AuthController
+ * Handles authentication and user management:
+ * - generateToken: Create JWT for user
+ * - register: Register a new user
+ * - login: Authenticate user and return token
+ * - getProfile: Get current user's profile
+ * - updateProfile: Update user's profile info
+ * - changePassword: Change user's password
+ */
 export class AuthController {
   /**
    * Generate JWT token for user
+   * @param {Object} user - User object
+   * @returns {string} JWT token
    */
-  static generateToken(userId, email, role) {
+  static generateToken(user) {
     return jwt.sign(
-      { userId, email, role },
+      {
+        user_id: user.user_id,
+        email: user.email,
+        role_id: user.role_id,
+        role: user.role_name,
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -19,6 +38,8 @@ export class AuthController {
 
   /**
    * Register new user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async register(req, res) {
     try {
@@ -32,15 +53,17 @@ export class AuthController {
         });
       }
 
-      const { fullName, email, password, phone, role } = req.body;
+      const { name, email, password, phone, role_id } = req.body;
+      // Define default role: "CUSTOMER" (3)
+      const assignedRoleId = role_id || 3;
 
       // Create user
       const result = await User.create({
-        fullName,
+        name,
         email,
         password,
         phone,
-        role: role || 'customer'
+        role_id: assignedRoleId,
       });
 
       if (!result.success) {
@@ -51,11 +74,7 @@ export class AuthController {
       }
 
       // Generate token
-      const token = AuthController.generateToken(
-        result.user.user_id,
-        result.user.email,
-        result.user.role
-      );
+      const token = AuthController.generateToken(result.user);
 
       res.status(201).json({
         success: true,
@@ -63,10 +82,10 @@ export class AuthController {
         data: {
           user: {
             id: result.user.user_id,
-            fullName: result.user.full_name,
+            name: result.user.name,
             email: result.user.email,
             phone: result.user.phone,
-            role: result.user.role,
+            role_id: result.user.role_id,
             createdAt: result.user.created_at
           },
           token
@@ -83,6 +102,8 @@ export class AuthController {
 
   /**
    * Login user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async login(req, res) {
     try {
@@ -97,7 +118,6 @@ export class AuthController {
       }
 
       const { email, password } = req.body;
-
       // Find user by email
       const user = await User.findByEmail(email);
       if (!user) {
@@ -106,7 +126,6 @@ export class AuthController {
           message: 'Invalid credentials'
         });
       }
-
       // Verify password
       const isValidPassword = await User.verifyPassword(password, user.password_hash);
       if (!isValidPassword) {
@@ -115,20 +134,19 @@ export class AuthController {
           message: 'Invalid credentials'
         });
       }
-
       // Generate token
-      const token = AuthController.generateToken(user.user_id, user.email, user.role);
-
+      const token = AuthController.generateToken(user);
       res.json({
         success: true,
         message: 'Login successful',
         data: {
           user: {
             id: user.user_id,
-            fullName: user.full_name,
+            name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role,
+            role_id: user.role_id,
+            role: user.role_name,
             createdAt: user.created_at
           },
           token
@@ -145,30 +163,31 @@ export class AuthController {
 
   /**
    * Get current user profile
+   * @param {Request} req
+   * @param {Response} res
    */
   static async getProfile(req, res) {
     try {
       const user = await User.findById(req.user.user_id);
-      
       if (!user) {
         return res.status(404).json({
           success: false,
           message: 'User not found'
         });
       }
-
       res.json({
         success: true,
         data: {
           user: {
             id: user.user_id,
-            fullName: user.full_name,
+            name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role,
+            role_id: user.role_id,
+            role: user.role_name,
             createdAt: user.created_at
-          }
-        }
+          },
+        },
       });
     } catch (error) {
       console.error('Get profile error:', error);
@@ -181,6 +200,8 @@ export class AuthController {
 
   /**
    * Update user profile
+   * @param {Request} req
+   * @param {Response} res
    */
   static async updateProfile(req, res) {
     try {
@@ -192,30 +213,28 @@ export class AuthController {
           errors: errors.array()
         });
       }
-
-      const { fullName, phone } = req.body;
-      const result = await User.update(req.user.user_id, { fullName, phone });
-
+      const { name, phone } = req.body;
+      const result = await User.update(req.user.user_id, { name, phone });
       if (!result.success) {
         return res.status(400).json({
           success: false,
           message: result.message
         });
       }
-
       res.json({
         success: true,
         message: 'Profile updated successfully',
         data: {
           user: {
             id: result.user.user_id,
-            fullName: result.user.full_name,
+            name: result.user.name,
             email: result.user.email,
             phone: result.user.phone,
-            role: result.user.role,
+            role_id: result.user.role_id,
+            role: result.user.role_name,
             createdAt: result.user.created_at
-          }
-        }
+          },
+        },
       });
     } catch (error) {
       console.error('Update profile error:', error);
@@ -227,7 +246,9 @@ export class AuthController {
   }
 
   /**
-   * Change password
+   * Change password for the authenticated user
+   * @param {Request} req
+   * @param {Response} res
    */
   static async changePassword(req, res) {
     try {
@@ -239,9 +260,7 @@ export class AuthController {
           errors: errors.array()
         });
       }
-
       const { currentPassword, newPassword } = req.body;
-
       // Get current user with password
       const user = await User.findByEmail(req.user.email);
       if (!user) {
@@ -250,7 +269,6 @@ export class AuthController {
           message: 'User not found'
         });
       }
-
       // Verify current password
       const isValidPassword = await User.verifyPassword(currentPassword, user.password_hash);
       if (!isValidPassword) {
@@ -259,10 +277,8 @@ export class AuthController {
           message: 'Current password is incorrect'
         });
       }
-
       // Update password
       await User.changePassword(req.user.user_id, newPassword);
-
       res.json({
         success: true,
         message: 'Password changed successfully'

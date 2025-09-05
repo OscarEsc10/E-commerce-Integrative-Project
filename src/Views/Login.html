@@ -1,9 +1,15 @@
+<!--
+    Login Page for E-commerce Project
+    Allows users to log in to their account. Includes form validation, loading indicator, and navigation to registration and dashboard.
+    All labels, instructions, and messages are in English.
+-->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - E-commerce</title>
+    <link rel="icon" type="image/png" href="/Assest/img/e-commerce.png">
+        <title>Login - E-commerce</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,114 +26,53 @@
 <body class="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-700 flex items-center justify-center p-5">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Iniciar Sesión</h1>
-            <p class="text-gray-600 text-sm">Accede a tu cuenta de E-commerce</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Login</h1>
+            <p class="text-gray-600 text-sm">Access your E-commerce account</p>
         </div>
 
         <div id="alert-container" class="mb-5"></div>
 
         <form id="loginForm" class="space-y-5">
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                 <input type="email" id="email" name="email" required 
                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-indigo-500 transition-colors">
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                 <input type="password" id="password" name="password" required 
                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-indigo-500 transition-colors">
             </div>
 
             <button type="submit" id="loginBtn"
                     class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none transition-all duration-200">
-                Iniciar Sesión
+                Login
             </button>
 
             <div id="loading" class="hidden text-center mt-3">
                 <div class="inline-block w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin mr-2"></div>
-                <span class="text-gray-600">Iniciando sesión...</span>
+                <span class="text-gray-600">Logging in...</span>
             </div>
         </form>
 
         <div class="text-center mt-6">
-            <p class="text-gray-600">¿No tienes cuenta? 
-                <a href="register.html" class="text-indigo-500 font-medium hover:underline">Regístrate aquí</a>
+            <p class="text-gray-600">Don't have an account? 
+                <a href="/register" class="text-indigo-500 font-medium hover:underline">Register here</a>
             </p>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <button onclick="window.location.href='/dashboard'" 
+                        class="text-gray-500 hover:text-indigo-500 text-sm flex items-center justify-center mx-auto">
+                    <i class="fas fa-home mr-2"></i>
+                    Go to Dashboard (if already logged in)
+                </button>
+            </div>
         </div>
     </div>
 
-    <script>
-        const API_BASE_URL = 'http://localhost:3000/api/auth';
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const loginBtn = document.getElementById('loginBtn');
-            const loading = document.getElementById('loading');
-            const alertContainer = document.getElementById('alert-container');
-            
-            // Get form data
-            const formData = new FormData(e.target);
-            const loginData = {
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
-
-            // Show loading state
-            loginBtn.disabled = true;
-            loading.classList.remove('hidden');
-            alertContainer.innerHTML = '';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(loginData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Store token in localStorage
-                    localStorage.setItem('authToken', result.data.token);
-                    localStorage.setItem('user', JSON.stringify(result.data.user));
-                    
-                    // Show success message
-                    showAlert('Inicio de sesión exitoso. Redirigiendo...', 'success');
-                    
-                    // Redirect to dashboard or home page
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 1500);
-                } else {
-                    showAlert(result.message || 'Error en el inicio de sesión', 'error');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showAlert('Error de conexión. Por favor, intenta de nuevo.', 'error');
-            } finally {
-                loginBtn.disabled = false;
-                loading.classList.add('hidden');
-            }
-        });
-
-        function showAlert(message, type) {
-            const alertContainer = document.getElementById('alert-container');
-            const bgColor = type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700';
-            alertContainer.innerHTML = `
-                <div class="p-3 rounded-lg border text-sm ${bgColor}">
-                    ${message}
-                </div>
-            `;
-        }
-
-        // Check if user is already logged in
-        if (localStorage.getItem('authToken')) {
-            window.location.href = '/dashboard.html';
-        }
-    </script>
+    <!-- Include JavaScript files -->
+    <script type="module" src="/src/Views/js/auth.js"></script>
+    <script type="module" src="/src/Views/js/api.js"></script>
+    <script type="module" src="/src/Views/js/login.js"></script>
 </body>
 </html>
